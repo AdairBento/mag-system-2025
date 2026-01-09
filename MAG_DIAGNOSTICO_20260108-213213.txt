@@ -1,0 +1,98 @@
+=== MAG DIAGNOSTICO (20260108-213213) ===
+
+## PASTA ATUAL
+C:\Users\adair\PycharmProject\MAG-system-webapp
+
+## ESTRUTURA (topo)
+
+Name                                Mode  LastWriteTime
+----                                ----  -------------
+.husky                              d---- 08/01/2026 21:27:28
+apps                                d---- 08/01/2026 21:27:29
+packages                            d---- 08/01/2026 21:27:29
+scripts                             d---- 08/01/2026 21:27:29
+.editorconfig                       -a--- 05/01/2026 02:54:36
+.env                                -a--- 05/01/2026 15:57:55
+.env.bak.20260105-155659            -a--- 05/01/2026 15:42:28
+.env.bak.20260105-155755            -a--- 05/01/2026 15:57:00
+.env.example                        -a--- 05/01/2026 02:55:08
+.eslintrc.cjs                       -a--- 05/01/2026 03:00:08
+.gitattributes                      -a--- 05/01/2026 10:28:43
+.gitignore                          -a--- 05/01/2026 15:01:48
+.lintstagedrc.json                  -a--- 05/01/2026 10:28:47
+.npmrc                              -a--- 05/01/2026 08:59:07
+.prettierignore                     -a--- 05/01/2026 08:26:47
+.prettierrc.json                    -a--- 05/01/2026 03:00:08
+commitlint.config.cjs               -a--- 05/01/2026 03:00:09
+docker-compose.yml                  -a--- 05/01/2026 15:57:55
+MAG_DIAGNOSTICO_20260108-213213.txt -a--- 08/01/2026 21:32:13
+package.json                        -a--- 05/01/2026 13:20:32
+pnpm-lock.yaml                      -a--- 05/01/2026 14:41:09
+pnpm-workspace.yaml                 -a--- 05/01/2026 08:13:23
+README.md                           -a--- 05/01/2026 03:00:09
+tsconfig.base.json                  -a--- 05/01/2026 03:00:09
+
+
+
+## CHECK MONOREPO
+package.json = True
+pnpm-workspace.yaml = True
+turbo.json = False
+apps\web\package.json = True
+apps\api\package.json = True
+packages\database\package.json = True
+packages\database\prisma\schema.prisma = True
+docker-compose.yml = True
+
+## VERSOES (node/pnpm)
+v20.19.0
+10.20.0
+
+## SCRIPTS DISPONIVEIS (workspace root)
+package.json raw salvo em: MAG_DIAGNOSTICO_20260108-213213.txt.package.json.raw.txt
+
+## API (Nest) - arquivos principais
+apps\api\src\main.ts = True
+apps\api\src\app.module.ts = True
+
+## WEB (Next) - arquivos principais
+apps\web\src\app\layout.tsx = True
+apps\web\src\app\(app)\layout.tsx = True
+apps\web\src\app\(app)\dashboard\page.tsx = True
+apps\web\src\app\(app)\clientes\page.tsx = True
+
+## PRISMA
+schema.prisma existe
+
+IgnoreCase LineNumber Line               Filename      Path                                                                                   Patter
+                                                                                                                                              n
+---------- ---------- ----               --------      ----                                                                                   ------
+      True          1 generator client { schema.prisma C:\Users\adair\PycharmProject\MAG-system-webapp\packages\database\prisma\schema.prisma gener…
+      True          5 datasource db {    schema.prisma C:\Users\adair\PycharmProject\MAG-system-webapp\packages\database\prisma\schema.prisma gener…
+      True         10 model User {       schema.prisma C:\Users\adair\PycharmProject\MAG-system-webapp\packages\database\prisma\schema.prisma gener…
+      True         23 enum UserRole {    schema.prisma C:\Users\adair\PycharmProject\MAG-system-webapp\packages\database\prisma\schema.prisma gener…
+
+
+
+## .env / exemplos
+
+FullName
+--------
+C:\Users\adair\PycharmProject\MAG-system-webapp\.env
+C:\Users\adair\PycharmProject\MAG-system-webapp\.env.bak.20260105-155659
+C:\Users\adair\PycharmProject\MAG-system-webapp\.env.bak.20260105-155755
+C:\Users\adair\PycharmProject\MAG-system-webapp\.env.example
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\.env
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\.env.bak.20260105-155659
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\.env.bak.20260105-155755
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\.env.example
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\.env.example
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\.env.local
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\.env.local.bak.20260105-161021
+C:\Users\adair\PycharmProject\MAG-system-webapp\packages\database\.env
+C:\Users\adair\PycharmProject\MAG-system-webapp\packages\database\.env.bak.20260105-155659
+C:\Users\adair\PycharmProject\MAG-system-webapp\packages\database\.env.bak.20260105-155755
+
+
+
+## PRONTO. Arquivo gerado: MAG_DIAGNOSTICO_20260108-213213.txt

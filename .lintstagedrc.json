@@ -1,0 +1,11 @@
+{
+  "*.{json,md,yml,yaml,css}": ["prettier --write"],
+  "*.{js,jsx,ts,tsx}": ["prettier --write"],
+
+  "apps/web/src/**/*.{js,jsx,ts,tsx}": ["pnpm --dir apps/web exec eslint --fix --"],
+  "apps/api/src/**/*.{js,jsx,ts,tsx}": ["pnpm --dir apps/api exec eslint --fix --"],
+  "packages/database/src/**/*.{js,jsx,ts,tsx}": [
+    "pnpm --dir packages/database exec eslint --fix --"
+  ],
+  "packages/shared/src/**/*.{js,jsx,ts,tsx}": ["pnpm --dir packages/shared exec eslint --fix --"]
+}

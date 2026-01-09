@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:15
+    container_name: mag-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: mag_user
+      POSTGRES_PASSWORD: mag_password
+      POSTGRES_DB: mag_rental
+    volumes:
+      - mag_db_data:/var/lib/postgresql/data
+
+volumes:
+  mag_db_data:

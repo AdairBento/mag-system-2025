@@ -1,0 +1,36 @@
+{
+  "name": "@mag/database",
+  "version": "1.0.0",
+  "private": true,
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "db:generate": "prisma generate --schema prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema prisma/schema.prisma",
+    "db:push": "prisma db push --schema prisma/schema.prisma",
+    "db:studio": "prisma studio --schema prisma/schema.prisma",
+    "prisma:generate": "pnpm run db:generate",
+    "prisma:migrate": "pnpm run db:migrate",
+    "prisma:studio": "pnpm run db:studio"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0"
+  },
+  "devDependencies": {
+    "prisma": "5.22.0",
+    "typescript": "5.9.3",
+    "@types/node": "25.0.3"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  }
+}
