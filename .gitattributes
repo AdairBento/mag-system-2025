@@ -6,3 +6,4 @@
 # Scripts (opcional, mas bom)
 *.sh text eol=lf
 *.ps1 text eol=crlf
+.husky/* text eol=lf
