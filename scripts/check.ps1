@@ -4,24 +4,27 @@ param()
 
 $ErrorActionPreference = "Stop"
 
-function Run($cmd) {
+function Run([string]$cmd) {
   Write-Host ">> $cmd" -ForegroundColor Cyan
-  iex $cmd
+  & cmd.exe /d /s /c $cmd
+  if ($LASTEXITCODE -ne 0) {
+    throw "Falhou: $cmd (exit=$LASTEXITCODE)"
+  }
 }
 
-# 1) Typecheck / Lint / Build (monorepo)
+# Sanity: garantir que estamos no repo root (onde existe package.json)
+if (!(Test-Path "package.json")) {
+  throw "Execute este script na raiz do repo (onde existe package.json)."
+}
+
+# 1) Gates principais (monorepo)
 Run "pnpm -w typecheck"
 Run "pnpm -w lint"
 Run "pnpm -w build"
 
-# 2) Prisma sanity (schema fora do padrão root)
-$schema = "packages/database/prisma/schema.prisma"
-if (Test-Path $schema) {
-  Run "pnpm -w exec prisma validate --schema `"$schema`""
-  Run "pnpm -w exec prisma generate --schema `"$schema`""
-} else {
-  Write-Host "WARN: Prisma schema nao encontrado em $schema (pulando prisma validate/generate)" -ForegroundColor Yellow
-}
+# 2) Prisma sanity (usa prisma.schema no package.json root)
+# Você já setou: package.json -> prisma.schema = packages/database/prisma/schema.prisma
+Run "pnpm -w exec prisma validate"
+Run "pnpm -w prisma:generate"
 
 Write-Host "`nOK: check completo passou." -ForegroundColor Green
-
