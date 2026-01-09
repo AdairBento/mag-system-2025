@@ -7,18 +7,14 @@
     "dev:api": "pnpm --filter @mag/api dev",
     "dev:all": "pnpm -r --parallel --stream --no-bail dev",
     "dev": "pnpm -w run dev:all",
-
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint -- --fix",
     "typecheck": "pnpm -r typecheck",
-
     "format": "prettier -w .",
     "format:check": "prettier -c .",
-
     "prepare": "husky",
     "lint-staged": "lint-staged",
-
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "prisma:migrate": "prisma migrate dev",
@@ -41,5 +37,8 @@
   },
   "dependencies": {
     "@prisma/client": "5.22.0"
+  },
+  "prisma": {
+    "schema": "packages/database/prisma/schema.prisma"
   }
 }

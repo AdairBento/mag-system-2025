@@ -59,7 +59,9 @@ async function bootstrap() {
   // log via Nest logger (consistent)
   const log = new NestLogger('Bootstrap');
   log.log(`API listening on http://localhost:${port}`);
-  log.log(`CORS origins: ${corsOrigins === '*' ? '*' : corsOrigins.join(', ')}`);
+  log.log(
+    `CORS origins: ${corsOrigins === '*' ? '*' : corsOrigins.join(', ')}`,
+  );
 }
 
 bootstrap();
