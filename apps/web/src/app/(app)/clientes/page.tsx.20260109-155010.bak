@@ -1,0 +1,124 @@
+'use client'
+
+import { useState } from 'react'
+import { Tabs } from './_components/tabs'
+import { ClientTable } from './_components/client-table'
+import { ClientFilters } from './_components/client-filters'
+import { DriverTable } from './_components/driver-table'
+import { DriverFilters } from './_components/driver-filters'
+import { ClientFormModal } from './_components/client-form-modal'
+import { DriverFormModal } from './_components/driver-form-modal'
+import { MigrateDriverModal } from './_components/migrate-driver-modal'
+import { DeleteConfirmation } from '@/components/modals/delete-confirmation'
+
+export default function ClientesPage() {
+  const [activeTab, setActiveTab] = useState<'clientes' | 'motoristas'>('clientes')
+
+  // Modais
+  const [clientModalOpen, setClientModalOpen] = useState(false)
+  const [driverModalOpen, setDriverModalOpen] = useState(false)
+  const [migrateOpen, setMigrateOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+
+  // Contexto selecionado (stub por enquanto)
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined)
+  const [selectedDriverId, setSelectedDriverId] = useState<string | undefined>(undefined)
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {activeTab === 'clientes' ? 'Clientes' : 'Motoristas'}
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          {activeTab === 'clientes'
+            ? 'Gerencie seus clientes pessoa física e jurídica'
+            : 'Gerencie os motoristas vinculados às empresas'}
+        </p>
+      </div>
+
+      <Tabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {activeTab === 'clientes' ? (
+        <div className="space-y-4">
+          <ClientFilters
+            onNew={() => {
+              setSelectedClientId(undefined)
+              setClientModalOpen(true)
+            }}
+          />
+          <ClientTable
+            onView={(id) => alert(`Visualizar cliente: ${id}`)}
+            onEdit={(id) => {
+              setSelectedClientId(id)
+              setClientModalOpen(true)
+            }}
+            onDelete={(id) => {
+              setSelectedClientId(id)
+              setDeleteOpen(true)
+            }}
+          />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <DriverFilters
+            onNew={() => {
+              setSelectedDriverId(undefined)
+              setDriverModalOpen(true)
+            }}
+          />
+          <DriverTable
+            onEdit={(id) => {
+              setSelectedDriverId(id)
+              setDriverModalOpen(true)
+            }}
+            onDelete={(id) => {
+              setSelectedDriverId(id)
+              setDeleteOpen(true)
+            }}
+            onMigrate={(id) => {
+              setSelectedDriverId(id)
+              setMigrateOpen(true)
+            }}
+          />
+        </div>
+      )}
+
+      {/* Modais */}
+      <ClientFormModal
+        isOpen={clientModalOpen}
+        onClose={() => setClientModalOpen(false)}
+        mode={selectedClientId ? 'edit' : 'create'}
+        clientId={selectedClientId}
+      />
+
+      <DriverFormModal
+        isOpen={driverModalOpen}
+        onClose={() => setDriverModalOpen(false)}
+        mode={selectedDriverId ? 'edit' : 'create'}
+        driverId={selectedDriverId}
+      />
+
+      <MigrateDriverModal
+        isOpen={migrateOpen}
+        onClose={() => setMigrateOpen(false)}
+        driverId={selectedDriverId || '1'}
+        driverName="Carlos Motorista"
+        currentClientName="Empresa XYZ"
+      />
+
+      <DeleteConfirmation
+        isOpen={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={() => {
+          // stub: depois vira chamada delete real
+          alert(`Excluir: ${activeTab === 'clientes' ? selectedClientId : selectedDriverId}`)
+          setDeleteOpen(false)
+        }}
+        title="Confirmar exclusão"
+        description="Tem certeza que deseja excluir este registro?"
+        itemName={activeTab === 'clientes' ? selectedClientId : selectedDriverId}
+      />
+    </div>
+  )
+}

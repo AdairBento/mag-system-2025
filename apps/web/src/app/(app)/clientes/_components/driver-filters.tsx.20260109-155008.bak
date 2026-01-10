@@ -1,0 +1,62 @@
+'use client'
+
+import { Search, Plus } from 'lucide-react'
+import { useState } from 'react'
+import type { CNHCategory, CNHStatus } from '@/types/driver'
+
+export function DriverFilters({ onNew }: { onNew: () => void }) {
+  const [search, setSearch] = useState('')
+  const [cnhCategory, setCnhCategory] = useState<CNHCategory | 'ALL'>('ALL')
+  const [cnhStatus, setCnhStatus] = useState<CNHStatus | 'ALL'>('ALL')
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nome, CPF, CNH, cliente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={cnhCategory}
+            onChange={(e) => setCnhCategory(e.target.value as CNHCategory | 'ALL')}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="ALL">Todas categorias</option>
+            <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+            <option value="D">D</option><option value="E">E</option>
+            <option value="AB">AB</option><option value="AC">AC</option>
+            <option value="AD">AD</option><option value="AE">AE</option>
+          </select>
+
+          <select
+            value={cnhStatus}
+            onChange={(e) => setCnhStatus(e.target.value as CNHStatus | 'ALL')}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="ALL">Todas CNHs</option>
+            <option value="valid">✅ Válida</option>
+            <option value="expiring">⚠️ Vencendo</option>
+            <option value="expired">❌ Vencida</option>
+          </select>
+
+          <button
+            type="button"
+            onClick={onNew}
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Plus size={18} />
+            Novo Motorista
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -1,7 +1,12 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
-import { AppShell } from "@/components/app/AppShell";
+import { AppShell } from "@/components/shell/app-shell";
+import { QueryProvider } from "@/components/providers/query-provider";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <QueryProvider>
+      <AppShell>{children}</AppShell>
+    </QueryProvider>
+  );
 }
