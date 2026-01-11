@@ -4,7 +4,7 @@ import * as React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import type { Client } from "@/lib/api/clients";
+import type { Client } from "@/types/client";
 
 const StatusEnum = z.enum(["ATIVO", "INATIVO", "BLOQUEADO"]);
 

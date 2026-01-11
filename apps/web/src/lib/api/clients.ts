@@ -1,53 +1,64 @@
-import { api } from "./http";
+// apps/web/src/lib/api/clients.ts
+import { api } from "@/lib/api/http";
+export type {
+  Client,
+  ClientFilters,
+  CreateClientPayload,
+  UpdateClientPayload,
+} from "@/types/client";
+import type {
+  Client,
+  ClientFilters,
+  CreateClientPayload,
+  UpdateClientPayload,
+} from "@/types/client";
 
-export type ClientStatus = "ATIVO" | "INATIVO" | "BLOQUEADO";
-export type ClientType = "PF" | "PJ";
+function toQuery(filters?: ClientFilters): string {
+  if (!filters) return "";
+  const q = new URLSearchParams();
 
-export type Client = {
-  id: string;
-  type: ClientType;
-  status: ClientStatus;
-  name?: string;
-  razaoSocial?: string;
-  nomeFantasia?: string;
-  cpf?: string;
-  cnpj?: string;
-  cellphone?: string;
-  email?: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
+  const term = filters.q ?? filters.search;
+  if (term) q.set("q", term);
 
-export type ClientFilters = {
-  search?: string;
-  type?: ClientType | "ALL";
-  status?: ClientStatus | "ALL";
-};
+  if (filters.city) q.set("city", filters.city);
+  if (filters.type && filters.type !== "ALL") q.set("type", filters.type);
+  if (filters.status && filters.status !== "ALL") q.set("status", filters.status);
 
-export type ListResponse<T> = {
-  ok: boolean;
-  data: T[];
-  meta: { total: number; page: number; limit: number; pages: number };
-};
-
-export async function getClients(filters: ClientFilters, page = 1, limit = 10) {
-  const qs = new URLSearchParams();
-  if (filters.search) qs.set("search", filters.search);
-  if (filters.type && filters.type !== "ALL") qs.set("type", filters.type);
-  if (filters.status && filters.status !== "ALL") qs.set("status", filters.status);
-  qs.set("page", String(page));
-  qs.set("limit", String(limit));
-  return api<ListResponse<Client>>(`/clients?${qs.toString()}`);
+  const s = q.toString();
+  return s ? `?${s}` : "";
 }
 
-export async function createClient(payload: unknown) {
-  return api<Client>("/clients", { method: "POST", body: JSON.stringify(payload) });
+export async function listClients(filters?: ClientFilters): Promise<Client[]> {
+  return api<Client[]>(`/clients${toQuery(filters)}`);
 }
 
-export async function updateClient(id: string, payload: unknown) {
+export async function getClient(id: string): Promise<Client> {
+  return api<Client>(`/clients/${id}`);
+}
+
+export async function createClient(payload: CreateClientPayload): Promise<Client> {
+  return api<Client>(`/clients`, { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function updateClient(id: string, payload: UpdateClientPayload): Promise<Client> {
   return api<Client>(`/clients/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
 }
 
-export async function deleteClient(id: string) {
-  return api<{ ok: boolean }>(`/clients/${id}`, { method: "DELETE" });
+export async function deleteClient(id: string): Promise<{ ok: true }> {
+  return api<{ ok: true }>(`/clients/${id}`, { method: "DELETE" });
+}
+
+// Aliases para UI legada
+export type PagedResult<T> = { data: T[] };
+
+// Compat: UI antiga chama getClients(filters, page, limit) e espera .data
+export async function getClients(
+  filters?: ClientFilters,
+  page?: number,
+  limit?: number,
+): Promise<PagedResult<Client>> {
+  void page;
+  void limit;
+  const data = await listClients(filters);
+  return { data };
 }

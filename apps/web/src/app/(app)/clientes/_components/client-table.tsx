@@ -1,70 +1,73 @@
+// apps/web/src/app/(app)/clientes/_components/client-table.tsx
 "use client";
 
-import * as React from "react";
-import type { Client } from "@/lib/api/clients";
+import type { Client } from "@/types/client";
 
 type Props = {
-  items: Client[];
-  onEdit: (c: Client) => void;
-  onDelete: (c: Client) => void;
+  data: Client[];
+  loading: boolean;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 };
 
-function labelName(c: Client) {
-  return c.type === "PF" ? (c.name ?? "-") : (c.razaoSocial ?? "-");
-}
+export function ClientTable({ data, loading, onEdit, onDelete }: Props) {
+  if (loading) {
+    return <div className="rounded-md border p-4 text-sm text-muted-foreground">Carregando...</div>;
+  }
 
-function labelDoc(c: Client) {
-  return c.type === "PF" ? (c.cpf ?? "-") : (c.cnpj ?? "-");
-}
+  if (!data || data.length === 0) {
+    return (
+      <div className="rounded-md border p-4 text-sm text-muted-foreground">
+        Nenhum cliente encontrado.
+      </div>
+    );
+  }
 
-export function ClientTable({ items, onEdit, onDelete }: Props) {
   return (
-    <div className="overflow-x-auto rounded-xl border bg-white">
-      <table className="min-w-full text-sm">
-        <thead className="border-b bg-gray-50">
+    <div className="overflow-x-auto rounded-md border">
+      <table className="w-full text-sm">
+        <thead className="border-b bg-muted/50">
           <tr>
-            <th className="px-3 py-2 text-left font-medium text-gray-700">Nome</th>
-            <th className="px-3 py-2 text-left font-medium text-gray-700">CPF/CNPJ</th>
-            <th className="px-3 py-2 text-left font-medium text-gray-700">Telefone</th>
-            <th className="px-3 py-2 text-left font-medium text-gray-700">Status</th>
-            <th className="px-3 py-2 text-right font-medium text-gray-700">Acoes</th>
+            <th className="px-3 py-2 text-left">Nome</th>
+            <th className="px-3 py-2 text-left">Doc</th>
+            <th className="px-3 py-2 text-left">Telefone</th>
+            <th className="px-3 py-2 text-left">Cidade</th>
+            <th className="px-3 py-2 text-left">Status</th>
+            <th className="px-3 py-2 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
-          {items.length === 0 ? (
-            <tr>
-              <td className="px-3 py-6 text-center text-gray-500" colSpan={5}>
-                Nenhum cliente encontrado.
+          {data.map((c) => (
+            <tr key={c.id} className="border-b last:border-b-0">
+              <td className="px-3 py-2">{c.name}</td>
+              <td className="px-3 py-2">{c.doc ?? c.cpf ?? c.cnpj ?? "-"}</td>
+              <td className="px-3 py-2">{c.cellphone ?? c.phone ?? "-"}</td>
+              <td className="px-3 py-2">{c.city ?? "-"}</td>
+              <td className="px-3 py-2">{c.status}</td>
+              <td className="px-3 py-2 text-right">
+                <div className="inline-flex gap-2">
+                  <button
+                    type="button"
+                    className="rounded-md border px-2 py-1 hover:bg-muted"
+                    onClick={() => onEdit(c.id)}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-md border px-2 py-1 hover:bg-muted"
+                    onClick={() => onDelete(c.id)}
+                  >
+                    Excluir
+                  </button>
+                </div>
               </td>
             </tr>
-          ) : (
-            items.map((c) => (
-              <tr key={c.id} className="border-b last:border-0">
-                <td className="px-3 py-2">{labelName(c)}</td>
-                <td className="px-3 py-2">{labelDoc(c)}</td>
-                <td className="px-3 py-2">{c.cellphone ?? "-"}</td>
-                <td className="px-3 py-2">{c.status}</td>
-                <td className="px-3 py-2 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      className="rounded border px-2 py-1 hover:bg-gray-50"
-                      onClick={() => onEdit(c)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="rounded border px-2 py-1 hover:bg-gray-50"
-                      onClick={() => onDelete(c)}
-                    >
-                      Excluir
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))
-          )}
+          ))}
         </tbody>
       </table>
     </div>
   );
 }
+
+export default ClientTable;
