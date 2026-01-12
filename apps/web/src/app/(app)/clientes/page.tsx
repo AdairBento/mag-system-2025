@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { apiClient } from "@/lib/api-client";
+import { apiClient } from "@/lib/apiclient";
 import { maskCPF, maskCNPJ, maskPhone } from "@/utils/masks";
 
 import type { Client, ClientType, Driver } from "./_components/types";
