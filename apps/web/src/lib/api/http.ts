@@ -54,3 +54,33 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
   return data as T;
 }
+
+// Export apiRequest para compatibilidade com fetchAPI.ts
+export async function apiRequest<T = unknown>(path: string, init?: RequestInit): Promise<T> {
+  return api<T>(path, init);
+}
+
+// Export apiClient para compatibilidade com page.tsx
+export const apiClient = {
+  get: <T = unknown>(path: string, init?: RequestInit) => api<T>(path, { ...init, method: "GET" }),
+  post: <T = unknown>(path: string, data?: unknown, init?: RequestInit) =>
+    api<T>(path, {
+      ...init,
+      method: "POST",
+      body: data === undefined ? undefined : JSON.stringify(data),
+    }),
+  put: <T = unknown>(path: string, data?: unknown, init?: RequestInit) =>
+    api<T>(path, {
+      ...init,
+      method: "PUT",
+      body: data === undefined ? undefined : JSON.stringify(data),
+    }),
+  patch: <T = unknown>(path: string, data?: unknown, init?: RequestInit) =>
+    api<T>(path, {
+      ...init,
+      method: "PATCH",
+      body: data === undefined ? undefined : JSON.stringify(data),
+    }),
+  delete: <T = unknown>(path: string, init?: RequestInit) =>
+    api<T>(path, { ...init, method: "DELETE" }),
+};

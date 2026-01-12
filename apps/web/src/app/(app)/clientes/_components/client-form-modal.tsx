@@ -125,14 +125,14 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
 
     try {
       const r = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
-      const data = (await r.json()) as any;
+      const data = (await r.json()) as Record<string, unknown>;
       if (!data?.erro) {
         setForm((prev) => ({
           ...prev,
-          logradouro: data.logradouro || "",
-          bairro: data.bairro || "",
-          cidade: data.localidade || "",
-          uf: data.uf || "",
+          logradouro: String(data.logradouro ?? ""),
+          bairro: String(data.bairro ?? ""),
+          cidade: String(data.localidade ?? ""),
+          uf: String(data.uf ?? ""),
         }));
       }
     } catch {
@@ -148,9 +148,12 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     setField(name as keyof FormState, value);
   };
 
-  const onPhone = (e: React.ChangeEvent<HTMLInputElement>) => setField("telefone", maskPhone(e.target.value));
-  const onCpf = (e: React.ChangeEvent<HTMLInputElement>) => setField("cpf", maskCPF(e.target.value));
-  const onCnpj = (e: React.ChangeEvent<HTMLInputElement>) => setField("cnpj", maskCNPJ(e.target.value));
+  const onPhone = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setField("telefone", maskPhone(e.target.value));
+  const onCpf = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setField("cpf", maskCPF(e.target.value));
+  const onCnpj = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setField("cnpj", maskCNPJ(e.target.value));
 
   const onCep = (e: React.ChangeEvent<HTMLInputElement>) => {
     const masked = e.target.value.replace(/\D/g, "").replace(/(\d{5})(\d)/, "$1-$2");
@@ -218,15 +221,31 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
 
         <form onSubmit={submit} className="p-6 space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Tipo de Cliente *</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Tipo de Cliente *
+            </label>
             <div className="flex gap-6">
               <label className="flex items-center cursor-pointer group">
-                <input type="radio" checked={clientType === "PF"} onChange={() => setClientType("PF")} className="w-4 h-4 accent-teal-600" />
-                <span className="ml-2 text-gray-700 font-medium group-hover:text-teal-600 transition">Pessoa Física</span>
+                <input
+                  type="radio"
+                  checked={clientType === "PF"}
+                  onChange={() => setClientType("PF")}
+                  className="w-4 h-4 accent-teal-600"
+                />
+                <span className="ml-2 text-gray-700 font-medium group-hover:text-teal-600 transition">
+                  Pessoa Física
+                </span>
               </label>
               <label className="flex items-center cursor-pointer group">
-                <input type="radio" checked={clientType === "PJ"} onChange={() => setClientType("PJ")} className="w-4 h-4 accent-teal-600" />
-                <span className="ml-2 text-gray-700 font-medium group-hover:text-teal-600 transition">Pessoa Jurídica</span>
+                <input
+                  type="radio"
+                  checked={clientType === "PJ"}
+                  onChange={() => setClientType("PJ")}
+                  className="w-4 h-4 accent-teal-600"
+                />
+                <span className="ml-2 text-gray-700 font-medium group-hover:text-teal-600 transition">
+                  Pessoa Jurídica
+                </span>
               </label>
             </div>
           </div>
@@ -248,41 +267,94 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
-              <input type="email" name="email" value={form.email} onChange={onChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={onChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Telefone *</label>
-              <input type="tel" name="telefone" value={form.telefone} onChange={onPhone} required maxLength={15} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+              <input
+                type="tel"
+                name="telefone"
+                value={form.telefone}
+                onChange={onPhone}
+                required
+                maxLength={15}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
             </div>
 
             {clientType === "PF" ? (
               <>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">CPF *</label>
-                  <input type="text" name="cpf" value={form.cpf} onChange={onCpf} required maxLength={14} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                  <input
+                    type="text"
+                    name="cpf"
+                    value={form.cpf}
+                    onChange={onCpf}
+                    required
+                    maxLength={14}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">CNH</label>
-                  <input type="text" name="cnh" value={form.cnh} onChange={onChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                  <input
+                    type="text"
+                    name="cnh"
+                    value={form.cnh}
+                    onChange={onChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Validade CNH</label>
-                  <input type="date" name="cnhValidade" value={form.cnhValidade} onChange={onChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Validade CNH
+                  </label>
+                  <input
+                    type="date"
+                    name="cnhValidade"
+                    value={form.cnhValidade}
+                    onChange={onChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
                 </div>
               </>
             ) : (
               <>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">CNPJ *</label>
-                  <input type="text" name="cnpj" value={form.cnpj} onChange={onCnpj} required maxLength={18} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                  <input
+                    type="text"
+                    name="cnpj"
+                    value={form.cnpj}
+                    onChange={onCnpj}
+                    required
+                    maxLength={18}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Inscrição Estadual</label>
-                  <input type="text" name="ie" value={form.ie} onChange={onChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Inscrição Estadual
+                  </label>
+                  <input
+                    type="text"
+                    name="ie"
+                    value={form.ie}
+                    onChange={onChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
                 </div>
               </>
             )}
@@ -294,46 +366,107 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div className="md:col-span-1">
                 <label className="block text-sm font-semibold text-gray-700 mb-1">CEP *</label>
-                <input type="text" name="cep" value={form.cep} onChange={onCep} required maxLength={9} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                <input
+                  type="text"
+                  name="cep"
+                  value={form.cep}
+                  onChange={onCep}
+                  required
+                  maxLength={9}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
               </div>
               <div className="md:col-span-3">
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Rua *</label>
-                <input type="text" name="logradouro" value={form.logradouro} onChange={onChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                <input
+                  type="text"
+                  name="logradouro"
+                  value={form.logradouro}
+                  onChange={onChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Número *</label>
-                <input type="text" name="numero" value={form.numero} onChange={onChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                <input
+                  type="text"
+                  name="numero"
+                  value={form.numero}
+                  onChange={onChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Complemento</label>
-                <input type="text" name="complemento" value={form.complemento} onChange={onChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Complemento
+                </label>
+                <input
+                  type="text"
+                  name="complemento"
+                  value={form.complemento}
+                  onChange={onChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Bairro *</label>
-                <input type="text" name="bairro" value={form.bairro} onChange={onChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                <input
+                  type="text"
+                  name="bairro"
+                  value={form.bairro}
+                  onChange={onChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Cidade *</label>
-                <input type="text" name="cidade" value={form.cidade} onChange={onChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+                <input
+                  type="text"
+                  name="cidade"
+                  value={form.cidade}
+                  onChange={onChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">UF *</label>
-                <input type="text" name="uf" value={form.uf} onChange={onChange} required maxLength={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent uppercase" />
+                <input
+                  type="text"
+                  name="uf"
+                  value={form.uf}
+                  onChange={onChange}
+                  required
+                  maxLength={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent uppercase"
+                />
               </div>
             </div>
           </div>
 
           <div className="flex gap-4 justify-end pt-4 border-t">
-            <button type="button" onClick={onClose} disabled={loading} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50"
+            >
               Cancelar
             </button>
-            <button type="submit" disabled={loading} className="flex items-center gap-2 px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium transition-colors disabled:opacity-50">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium transition-colors disabled:opacity-50"
+            >
               <Save size={18} />
               {loading ? "Salvando..." : "Salvar Cliente"}
             </button>

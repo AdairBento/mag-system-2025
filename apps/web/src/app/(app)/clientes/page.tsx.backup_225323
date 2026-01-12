@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Users,
@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { apiClient } from "@/lib/api/http";
+import { apiClient } from "@/lib/apiclient";
 import { maskCPF, maskCNPJ, maskPhone } from "@/utils/masks";
 
 import type { Client, ClientType, Driver } from "./_components/types";
@@ -36,9 +36,7 @@ export default function ClientsPage() {
   // clients filters
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | ClientType>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | "ATIVO" | "INADIMPLENTE" | "BLOQUEADO">(
-    "all",
-  );
+  const [statusFilter, setStatusFilter] = useState<"all" | "ATIVO" | "INADIMPLENTE" | "BLOQUEADO">("all");
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -52,6 +50,10 @@ export default function ClientsPage() {
 
   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
+
+  // reset page on filter change
+  useEffect(() => setPage(1), [search, typeFilter, statusFilter]);
+  useEffect(() => setDriverPage(1), [driverSearch]);
 
   const clientsQuery = useQuery({
     queryKey: ["clients", { search, typeFilter, statusFilter, page, pageSize }],
@@ -90,14 +92,11 @@ export default function ClientsPage() {
   const driversTotalPages = Math.max(1, Math.ceil(driversTotal / pageSize));
 
   // PJ list for DriverFormModal
-  const pjClients = useMemo(
-    () => (clientsQuery.data?.items ?? []).filter((c) => c.type === "PJ"),
-    [clientsQuery.data?.items],
-  );
+  const pjClients = useMemo(() => clients.filter((c) => c.type === "PJ"), [clients]);
 
   // mutations
   const saveClient = useMutation({
-    mutationFn: async (payload: Record<string, unknown>) => {
+    mutationFn: async (payload: any) => {
       const isUpdate = Boolean(payload.id);
       if (isUpdate) {
         const { id, ...body } = payload;
@@ -124,7 +123,7 @@ export default function ClientsPage() {
   });
 
   const saveDriver = useMutation({
-    mutationFn: async (payload: Record<string, unknown>) => {
+    mutationFn: async (payload: any) => {
       const isUpdate = Boolean(payload.id);
       const driverId = payload.id as string | undefined;
 
@@ -146,10 +145,9 @@ export default function ClientsPage() {
       setEditingDriver(null);
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
     },
-    onError: (err: unknown) => {
+    onError: (err: any) => {
       // 409 -> conflito/migração/regras (você pode melhorar depois)
-      const error = err as { response?: { status?: number } };
-      if (error?.response?.status === 409) return;
+      if (err?.response?.status === 409) return;
       toast.error("Erro ao salvar motorista");
     },
   });
@@ -198,9 +196,7 @@ export default function ClientsPage() {
               onClick={() => setTab("clients")}
               className={
                 "flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all " +
-                (tab === "clients"
-                  ? "bg-white text-teal-700 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900")
+                (tab === "clients" ? "bg-white text-teal-700 shadow-sm" : "text-slate-600 hover:text-slate-900")
               }
             >
               <UserIcon className="w-4 h-4" />
@@ -210,9 +206,7 @@ export default function ClientsPage() {
               onClick={() => setTab("drivers")}
               className={
                 "flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all " +
-                (tab === "drivers"
-                  ? "bg-white text-teal-700 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900")
+                (tab === "drivers" ? "bg-white text-teal-700 shadow-sm" : "text-slate-600 hover:text-slate-900")
               }
             >
               <Truck className="w-4 h-4" />
@@ -248,10 +242,7 @@ export default function ClientsPage() {
               <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
               <input
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-400"
                 placeholder="Buscar por nome, CPF, CNPJ..."
               />
@@ -259,7 +250,7 @@ export default function ClientsPage() {
 
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as "all" | ClientType)}
+              onChange={(e) => setTypeFilter(e.target.value as any)}
               className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-teal-200"
             >
               <option value="all">Tipo: Todos</option>
@@ -269,11 +260,7 @@ export default function ClientsPage() {
 
             <select
               value={statusFilter}
-              onChange={(e) => {
-                const value = e.target.value as typeof statusFilter;
-                setStatusFilter(value);
-                setPage(1);
-              }}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
               className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-teal-200"
             >
               <option value="all">Status: Todos</option>
@@ -304,10 +291,7 @@ export default function ClientsPage() {
                   </tr>
                 ) : clients.length ? (
                   clients.map((c) => (
-                    <tr
-                      key={c.id}
-                      className="border-t border-slate-100 hover:bg-slate-50 transition-colors"
-                    >
+                    <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3 flex items-center gap-2">
                         {c.type === "PJ" ? (
                           <Building2 className="w-4 h-4 text-slate-400" />
@@ -346,11 +330,7 @@ export default function ClientsPage() {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() =>
-                              c.id &&
-                              window.confirm(`Remover "${c.name}"?`) &&
-                              deleteClient.mutate(c.id)
-                            }
+                            onClick={() => c.id && window.confirm(`Remover "${c.name}"?`) && deleteClient.mutate(c.id)}
                             className="p-2 rounded-lg hover:bg-red-50 text-slate-600 hover:text-red-600 transition-colors"
                             title="Excluir"
                           >
@@ -414,10 +394,7 @@ export default function ClientsPage() {
               <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
               <input
                 value={driverSearch}
-                onChange={(e) => {
-                  setDriverSearch(e.target.value);
-                  setDriverPage(1);
-                }}
+                onChange={(e) => setDriverSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-400"
                 placeholder="Buscar por nome, CPF, CNH..."
               />
@@ -446,10 +423,7 @@ export default function ClientsPage() {
                   </tr>
                 ) : drivers.length ? (
                   drivers.map((d) => (
-                    <tr
-                      key={d.id}
-                      className="border-t border-slate-100 hover:bg-slate-50 transition-colors"
-                    >
+                    <tr key={d.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3 font-medium text-slate-900">{d.name}</td>
                       <td className="px-4 py-3 text-slate-600">{d.client?.name || "—"}</td>
                       <td className="px-4 py-3 text-slate-600">{maskCPF(d.cpf || "")}</td>
@@ -465,11 +439,7 @@ export default function ClientsPage() {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() =>
-                              d.id &&
-                              window.confirm(`Remover "${d.name}"?`) &&
-                              deleteDriver.mutate(d.id)
-                            }
+                            onClick={() => d.id && window.confirm(`Remover "${d.name}"?`) && deleteDriver.mutate(d.id)}
                             className="p-2 rounded-lg hover:bg-red-50 text-slate-600 hover:text-red-600 transition-colors"
                             title="Excluir"
                           >
