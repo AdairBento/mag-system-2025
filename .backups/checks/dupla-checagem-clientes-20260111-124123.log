@@ -1,0 +1,150 @@
+**********************
+PowerShell transcript start
+Start time: 20260111124123
+Username: ADAIR\adair
+RunAs User: ADAIR\adair
+Configuration Name: 
+Machine: ADAIR (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll
+Process ID: 21080
+PSVersion: 7.5.4
+PSEdition: Core
+GitCommitId: 7.5.4
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+
+================================================================================
+DUPlA CHECAGEM — MAG-system-webapp (Clientes/Motoristas) — 20260111-124123
+================================================================================
+Repo: C:\Users\adair\PycharmProject\MAG-system-webapp
+
+================================================================================
+1) Git status (quick)
+================================================================================
+On branch feat/cliente-motorista
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .backups/checks/
+        scripts/dupla-checagem-clientes.ps1
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+================================================================================
+2) Checar masks.ts
+================================================================================
+masks.ts: C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\src\utils\masks.ts
+✅ Existe
+
+================================================================================
+3) Procurar referencias a utils/masks no apps/web/src
+================================================================================
+ℹ️ rg (ripgrep) não encontrado; usando Select-String (mais lento).
+
+================================================================================
+4) Mostrar topo do client-form-modal.tsx (primeiras 80 linhas)
+================================================================================
+Arquivo: C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\src\app\(app)\clientes\_components\client-form-modal.tsx
+"use client";
+
+import * as React from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useWatch } from "react-hook-form";
+import type { Client } from "@/types/client";
+
+const StatusEnum = z.enum(["ATIVO", "INATIVO", "BLOQUEADO"]);
+
+const schema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("PF"),
+    status: StatusEnum,
+    name: z.string().min(2, "Nome obrigatÃ³rio"),
+    cpf: z.string().min(11, "CPF obrigatÃ³rio"),
+    cellphone: z.string().optional(),
+    email: z.string().email("E-mail invÃ¡lido").optional().or(z.literal("")),
+  }),
+  z.object({
+    type: z.literal("PJ"),
+    status: StatusEnum,
+    razaoSocial: z.string().min(2, "RazÃ£o Social obrigatÃ³ria"),
+    cnpj: z.string().min(14, "CNPJ obrigatÃ³rio"),
+    nomeFantasia: z.string().optional(),
+    cellphone: z.string().optional(),
+    email: z.string().email("E-mail invÃ¡lido").optional().or(z.literal("")),
+  }),
+]);
+
+export type ClientFormData = z.infer<typeof schema>;
+
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: ClientFormData) => Promise<void> | void;
+  initial?: Client | null;
+  title?: string;
+};
+
+type ErrorMap = Partial<Record<string, { message?: string }>>;
+
+const DEFAULTS: ClientFormData = {
+  type: "PF",
+  status: "ATIVO",
+  name: "",
+  cpf: "",
+};
+
+export function ClientFormModal({ open, onClose, onSubmit, initial, title }: Props) {
+  const form = useForm<ClientFormData>({
+    resolver: zodResolver(schema),
+    mode: "onChange",
+    defaultValues: DEFAULTS,
+  });
+
+  const type = useWatch({ control: form.control, name: "type" });
+  React.useEffect(() => {
+    if (!open) return;
+
+    if (!initial) {
+      form.reset(DEFAULTS);
+      return;
+    }
+
+    if (initial.type === "PF") {
+      form.reset({
+        type: "PF",
+        status: initial.status,
+        name: initial.name ?? "",
+        cpf: initial.cpf ?? "",
+        cellphone: initial.cellphone ?? "",
+        email: initial.email ?? "",
+      });
+    } else {
+      form.reset({
+        type: "PJ",
+        status: initial.status,
+        razaoSocial: initial.razaoSocial ?? "",
+        cnpj: initial.cnpj ?? "",
+
+================================================================================
+5) Typecheck workspace
+================================================================================
+
+
+================================================================================
+6) Lint workspace
+================================================================================
+
+
+================================================================================
+FIM — Resultado gravado em:
+================================================================================
+C:\Users\adair\PycharmProject\MAG-system-webapp\.backups\checks\dupla-checagem-clientes-20260111-124123.log
+**********************
+PowerShell transcript end
+End time: 20260111124151
+**********************

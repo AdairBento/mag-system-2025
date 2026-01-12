@@ -1,202 +1,195 @@
-"use client";
+import React, { useEffect, useMemo, useState } from "react";
+import { Save, X } from "lucide-react";
+import { maskCPF, maskPhone } from "@/utils/masks";
+import type { Client, Driver } from "./types";
 
-import * as React from "react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+type DriverUpsertPayload = {
+  id?: string;
+  name: string;
+  cpf: string;
+  telefone?: string;
 
-import type { CNHCategory, Driver } from "@/types/driver";
+  cnh: string;
+  cnhCategory?: string;
+  cnhExpiration?: string;
 
-const schema = z.object({
-  name: z.string().min(2, "Informe o nome"),
-  cpf: z.string().min(11, "Informe o CPF"),
-  cnh: z.string().min(5, "Informe a CNH"),
-  cnhCategory: z.enum(["A", "B", "C", "D", "E", "AB", "AC", "AD", "AE"]),
-  cnhValidade: z.string().min(8, "Informe a validade da CNH"),
-  telefone: z.string().optional(),
-  status: z.enum(["ATIVO", "INATIVO"]),
-  clientId: z.string().min(1, "Informe o cliente/empresa"),
-});
-
-export type DriverFormData = z.infer<typeof schema>;
-
-type Mode = "create" | "edit";
-
-type Props = {
-  companies?: Array<{ id: string; name?: string; label?: string }>;
-  open: boolean;
-  onClose: () => void;
-  mode: Mode;
-  title?: string;
-
-  initial?: Partial<Driver> | null;
-  onSubmit: (data: DriverFormData) => Promise<void> | void;
+  status: "ATIVO" | "INATIVO";
+  clientId: string;
 };
 
-const DEFAULTS: DriverFormData = {
+interface Props {
+  isOpen: boolean;
+  title: string;
+  initialData?: Driver | null;
+  clients: Client[]; // PJ only
+  onClose: () => void;
+  onSubmit: (payload: DriverUpsertPayload) => void | Promise<void>;
+}
+
+type FormState = {
+  id: string;
+  name: string;
+  cpf: string;
+  telefone: string;
+
+  cnh: string;
+  cnhCategory: string;
+  cnhValidade: string;
+
+  status: "ATIVO" | "INATIVO";
+  clientId: string;
+};
+
+const emptyForm: FormState = {
+  id: "",
   name: "",
   cpf: "",
-  cnh: "",
-  cnhCategory: "B",
-  cnhValidade: "",
   telefone: "",
+  cnh: "",
+  cnhCategory: "",
+  cnhValidade: "",
   status: "ATIVO",
   clientId: "",
 };
 
-export function DriverFormModal({ open, onClose, mode, title, initial, onSubmit }: Props) {
-  const form = useForm<DriverFormData>({
-    resolver: zodResolver(schema),
-    defaultValues: DEFAULTS,
-  });
+export function DriverFormModal({ isOpen, title, initialData, clients, onClose, onSubmit }: Props) {
+  const defaultClientId = useMemo(() => clients?.[0]?.id ?? "", [clients]);
 
-  // ✅ padrão profissional: resetar o form quando abrir/initial mudar
-  React.useEffect(() => {
-    if (!open) return;
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState<FormState>(emptyForm);
 
-    if (mode === "edit" && initial) {
-      form.reset({
-        ...DEFAULTS,
-        name: initial.name ?? "",
-        cpf: initial.cpf ?? "",
-        cnh: initial.cnh ?? "",
-        cnhCategory: (initial.cnhCategory as CNHCategory) ?? "B",
-        cnhValidade: initial.cnhValidade ?? "",
-        telefone: initial.telefone ?? "",
-        status: initial.status ?? "ATIVO",
-        clientId: initial.clientId ?? "",
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (initialData) {
+      setForm({
+        id: initialData.id ?? "",
+        name: initialData.name ?? "",
+        cpf: initialData.cpf ?? "",
+        telefone: initialData.telefone ?? "",
+
+        cnh: initialData.cnh ?? "",
+        cnhCategory: initialData.cnhCategory ?? "",
+        cnhValidade: initialData.cnhExpiration ?? "",
+
+        status: initialData.status ?? "ATIVO",
+        clientId: initialData.clientId ?? defaultClientId,
       });
-      return;
+    } else {
+      setForm({ ...emptyForm, clientId: defaultClientId });
     }
+  }, [isOpen, initialData, defaultClientId]);
 
-    form.reset(DEFAULTS);
-  }, [open, mode, initial, form]);
+  const setField = (name: keyof FormState, value: string) => setForm((p) => ({ ...p, [name]: value }));
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setField(name as keyof FormState, value);
+  };
 
-  const submit = form.handleSubmit(async (data) => {
-    await onSubmit(data);
-    onClose();
-  });
+  const onCpf = (e: React.ChangeEvent<HTMLInputElement>) => setField("cpf", maskCPF(e.target.value));
+  const onPhone = (e: React.ChangeEvent<HTMLInputElement>) => setField("telefone", maskPhone(e.target.value));
 
-  if (!open) return null;
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const modalTitle = title ?? (mode === "create" ? "➕ Novo Motorista" : "✏️ Editar Motorista");
+    try {
+      const payload: DriverUpsertPayload = {
+        id: form.id || undefined,
+        name: form.name.trim(),
+        cpf: form.cpf.replace(/\D/g, ""),
+        telefone: form.telefone.replace(/\D/g, "") || undefined,
+
+        cnh: form.cnh.trim(),
+        cnhCategory: form.cnhCategory.trim() || undefined,
+        cnhExpiration: form.cnhValidade || undefined,
+
+        status: form.status,
+        clientId: form.clientId,
+      };
+
+      await onSubmit(payload);
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
-      <div className="w-full max-w-2xl rounded-xl bg-white p-4 shadow">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-semibold">{modalTitle}</h2>
-            <p className="text-xs text-muted-foreground">
-              Preencha os dados do motorista (PF). Vincule a um cliente PJ quando aplicável.
-            </p>
-          </div>
-
-          <button className="rounded-md border px-3 py-1.5 text-sm" onClick={onClose} type="button">
-            Fechar
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-white">{title}</h2>
+          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded transition-colors">
+            <X size={24} className="text-white" />
           </button>
         </div>
 
-        <form onSubmit={submit} className="mt-4 grid gap-3">
-          <div className="grid gap-3 md:grid-cols-2">
-            <Field label="Nome" error={form.formState.errors.name?.message}>
-              <input
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                {...form.register("name")}
-              />
-            </Field>
+        <form onSubmit={submit} className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Nome *</label>
+              <input name="name" value={form.name} onChange={onChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+            </div>
 
-            <Field label="CPF" error={form.formState.errors.cpf?.message}>
-              <input
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                {...form.register("cpf")}
-              />
-            </Field>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">CPF *</label>
+              <input name="cpf" value={form.cpf} onChange={onCpf} required maxLength={14} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+            </div>
 
-            <Field label="CNH" error={form.formState.errors.cnh?.message}>
-              <input
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                {...form.register("cnh")}
-              />
-            </Field>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Telefone</label>
+              <input name="telefone" value={form.telefone} onChange={onPhone} maxLength={15} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+            </div>
 
-            <Field label="Categoria CNH" error={form.formState.errors.cnhCategory?.message}>
-              <select
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                {...form.register("cnhCategory")}
-              >
-                {["A", "B", "C", "D", "E", "AB", "AC", "AD", "AE"].map((v) => (
-                  <option key={v} value={v}>
-                    {v}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">CNH *</label>
+              <input name="cnh" value={form.cnh} onChange={onChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Categoria</label>
+              <input name="cnhCategory" value={form.cnhCategory} onChange={onChange} placeholder="A, B, AB..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Validade CNH</label>
+              <input type="date" name="cnhValidade" value={form.cnhValidade} onChange={onChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+              <select name="status" value={form.status} onChange={onChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white">
+                <option value="ATIVO">Ativo</option>
+                <option value="INATIVO">Inativo</option>
+              </select>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Empresa (PJ) *</label>
+              <select name="clientId" value={form.clientId} onChange={onChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white">
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
                   </option>
                 ))}
               </select>
-            </Field>
-
-            <Field label="Validade CNH" error={form.formState.errors.cnhValidade?.message}>
-              <input
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                placeholder="YYYY-MM-DD"
-                {...form.register("cnhValidade")}
-              />
-            </Field>
-
-            <Field label="Telefone" error={form.formState.errors.telefone?.message}>
-              <input
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                {...form.register("telefone")}
-              />
-            </Field>
-
-            <Field label="Status" error={form.formState.errors.status?.message}>
-              <select
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                {...form.register("status")}
-              >
-                <option value="ATIVO">ATIVO</option>
-                <option value="INATIVO">INATIVO</option>
-              </select>
-            </Field>
-
-            <Field
-              label="Cliente (PJ) / Empresa (clientId)"
-              error={form.formState.errors.clientId?.message}
-            >
-              <input
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                {...form.register("clientId")}
-              />
-            </Field>
+            </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <button className="rounded-md border px-4 py-2 text-sm" type="button" onClick={onClose}>
+          <div className="flex gap-4 justify-end pt-4 border-t">
+            <button type="button" onClick={onClose} disabled={loading} className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50">
               Cancelar
             </button>
-            <button className="rounded-md bg-black px-4 py-2 text-sm text-white" type="submit">
-              {mode === "create" ? "Criar Motorista" : "Salvar Alterações"}
+            <button type="submit" disabled={loading} className="flex items-center gap-2 px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium transition-colors disabled:opacity-50">
+              <Save size={18} />
+              {loading ? "Salvando..." : "Salvar Motorista"}
             </button>
           </div>
         </form>
       </div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="grid gap-1">
-      <label className="text-xs font-medium">{label}</label>
-      {children}
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </div>
   );
 }
