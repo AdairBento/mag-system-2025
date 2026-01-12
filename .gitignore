@@ -46,3 +46,11 @@ next-env.d.ts
 .env.local
 .env.*.local
 
+
+# Arquivos backup temporários
+*.backup_*
+*.bak
+*.old
+*.tmp
+*-old.*
+*-copy.*
