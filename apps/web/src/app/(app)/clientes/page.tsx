@@ -529,7 +529,7 @@ export default function ClientsPage() {
               setIsDriverModalOpen(false);
               setEditingDriver(null);
             }}
-            onSubmit={async (payload: Record<string, unknown>) => {
+            onSubmit={async (payload: Driver) => {
               // ✅ Usar mutateAsync para propagar o erro 409 ao modal
               try {
                 await saveDriver.mutateAsync(payload);

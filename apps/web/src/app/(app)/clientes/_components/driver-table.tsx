@@ -73,7 +73,7 @@ export function DriverTable({
                     <button
                       type="button"
                       className="rounded-md border px-2 py-1 text-xs hover:bg-gray-100"
-                      onClick={() => onEdit(d.id)}
+                      onClick={() => onEdit(d.id ?? "")}
                       title="Editar"
                     >
                       Editar
@@ -81,7 +81,7 @@ export function DriverTable({
                     <button
                       type="button"
                       className="rounded-md border border-red-300 px-2 py-1 text-xs text-red-700 hover:bg-red-50"
-                      onClick={() => onDelete(d.id)}
+                      onClick={() => onDelete(d.id ?? "")}
                       title="Excluir"
                     >
                       Excluir

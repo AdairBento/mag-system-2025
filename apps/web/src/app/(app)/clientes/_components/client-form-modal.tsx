@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Save, X } from "lucide-react";
 import { maskCPF, maskCNPJ, maskPhone } from "@/utils/masks";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/api-error-helper";
 import type { Client, ClientType } from "@/types/client";
 
 type ClientUpsertPayload = {
@@ -313,11 +314,10 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
       );
 
       onClose();
-    } catch (error: unknown) {
-      console.error("❌ Erro ao salvar cliente:", error);
-
+    } catch (err: unknown) {
+      const message = getErrorMessage(err);
       toast.error("Erro ao salvar cliente", {
-        description: error?.message || "Tente novamente",
+        description: message,
         duration: 5000,
       });
     } finally {

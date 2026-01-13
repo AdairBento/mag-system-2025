@@ -2,19 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Save, X } from "lucide-react";
 import { maskCPF, maskPhone } from "@/utils/masks";
 import { toast } from "sonner";
-
-interface Driver {
-  id?: string;
-  name: string;
-  cpf: string;
-  email?: string;
-  cnh: string;
-  cnhCategory: string;
-  cnhValidade: string;
-  telefone: string;
-  clientId: string;
-  status: "ATIVO" | "INATIVO";
-}
+import { toApiLikeError, getErrorMessage } from "@/lib/api-error-helper";
+import type { Driver, CNHCategory } from "@/types/driver";
 
 interface DriverFormModalProps {
   isOpen: boolean;
@@ -171,7 +160,7 @@ export function DriverFormModal({
         cpf: form.cpf.replace(/\D/g, ""),
         email: form.email.trim() || undefined,
         cnh: form.cnh.trim(),
-        cnhCategory: form.cnhCategory,
+        cnhCategory: form.cnhCategory as CNHCategory | null,
         cnhValidade: form.cnhValidade,
         telefone: form.telefone.replace(/\D/g, ""),
         clientId: form.clientId,
@@ -180,22 +169,43 @@ export function DriverFormModal({
 
       await onSubmit(driverData);
       onClose();
-    } catch (error: unknown) {
-      console.error("❌ Erro ao salvar motorista:", error);
+    } catch (err: unknown) {
+      console.error("❌ Erro ao salvar motorista:", err);
 
-      // ✅ Verificar múltiplas estruturas de erro 409
-      const status = error?.response?.status || error?.status;
-      const errorData = error?.response?.data || error?.details || error;
+      const apiErr = toApiLikeError(err);
+      const status = apiErr.response?.status ?? apiErr.status;
+      const details = apiErr.response?.data ?? apiErr.details;
 
-      console.log("🔍 Debug erro:", { status, errorData, hasDriver: !!errorData?.driver });
+      const detailsObj =
+        typeof details === "object" && details !== null
+          ? (details as Record<string, unknown>)
+          : null;
 
-      if (status === 409 && errorData?.driver) {
-        console.log("✅ Conflito 409 detectado - Mostrando modal de migração");
-        setConflictData(errorData);
+      const hasDriver = !!detailsObj?.driver;
+
+      console.log("🔍 Debug erro:", { status, details, hasDriver });
+
+      if (status === 409 && hasDriver) {
+        setConflictData(
+          detailsObj as unknown as {
+            driver: {
+              id: string;
+              name: string;
+              cpf: string;
+              currentClient?: string;
+            };
+          },
+        );
         setShowTransferModal(true);
       } else {
+        const message =
+          apiErr.message ??
+          (detailsObj && typeof detailsObj.message === "string"
+            ? detailsObj.message
+            : getErrorMessage(err));
+
         toast.error("Erro ao salvar motorista", {
-          description: error?.message || errorData?.message || "Tente novamente",
+          description: message,
           duration: 5000,
         });
       }
@@ -211,7 +221,7 @@ export function DriverFormModal({
 
       // ✅ Usar URL correta para a API
       const response = await fetch(
-        `http://localhost:3001/drivers/${conflictData.driver.id}/migrate`,
+        `http://localhost:3001/drivers/${conflictData?.driver?.id ?? ""}/migrate`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -227,7 +237,7 @@ export function DriverFormModal({
       }
 
       toast.success("Motorista migrado com sucesso!", {
-        description: `${conflictData.driver.name} agora está vinculado a este cliente.`,
+        description: `${conflictData?.driver?.name ?? ""} agora está vinculado a este cliente.`,
         duration: 4000,
       });
 
@@ -238,13 +248,46 @@ export function DriverFormModal({
       if (window.location.pathname.includes("/clientes")) {
         setTimeout(() => window.location.reload(), 1000);
       }
-    } catch (error: unknown) {
-      console.error("Erro ao transferir motorista:", error);
-      toast.error("Erro ao migrar motorista", {
-        description: error.message,
-        duration: 5000,
-      });
-      setShowTransferModal(true);
+    } catch (err: unknown) {
+      console.error("❌ Erro ao salvar motorista:", err);
+
+      const apiErr = toApiLikeError(err);
+      const status = apiErr.response?.status ?? apiErr.status;
+      const details = apiErr.response?.data ?? apiErr.details;
+
+      const detailsObj =
+        typeof details === "object" && details !== null
+          ? (details as Record<string, unknown>)
+          : null;
+
+      const hasDriver = !!detailsObj?.driver;
+
+      console.log("🔍 Debug erro:", { status, details, hasDriver });
+
+      if (status === 409 && hasDriver) {
+        setConflictData(
+          detailsObj as unknown as {
+            driver: {
+              id: string;
+              name: string;
+              cpf: string;
+              currentClient?: string;
+            };
+          },
+        );
+        setShowTransferModal(true);
+      } else {
+        const message =
+          apiErr.message ??
+          (detailsObj && typeof detailsObj.message === "string"
+            ? detailsObj.message
+            : getErrorMessage(err));
+
+        toast.error("Erro ao salvar motorista", {
+          description: message,
+          duration: 5000,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -458,7 +501,7 @@ export function DriverFormModal({
 
             <div className="bg-gray-50 rounded-lg p-4 space-y-2 mb-4">
               <p className="text-sm text-gray-600">
-                <span className="font-semibold">Nome:</span> {conflictData.driver.name}
+                <span className="font-semibold">Nome:</span> {conflictData?.driver?.name ?? ""}
               </p>
               <p className="text-sm text-gray-600">
                 <span className="font-semibold">CPF:</span> {conflictData.driver.cpf}

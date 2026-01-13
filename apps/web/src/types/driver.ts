@@ -14,10 +14,11 @@ export type CNHStatus =
   | "expired";
 
 export type Driver = {
-  id: string;
+  id?: string;
   name: string;
 
   cpf: string;
+  email?: string | null;
   cnh: string | null;
 
   // UI atual usa isso
@@ -52,6 +53,7 @@ export type DriverFilters = {
 export type CreateDriverPayload = {
   name: string;
   cpf: string;
+  email?: string | null;
   cnh: string | null;
 
   cnhCategory?: CNHCategory | null;

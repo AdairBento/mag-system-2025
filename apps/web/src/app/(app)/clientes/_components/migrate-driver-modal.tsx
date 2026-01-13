@@ -16,7 +16,7 @@ export function MigrateDriverModal({
   driver: Driver | null;
   companies: CompanyOption[];
   onClose: () => void;
-  onConfirm: (args: { driverId: string; newClientId: string }) => void | Promise<void>;
+  onConfirm: (args: { driverId?: string; newClientId: string }) => void | Promise<void>;
 }) {
   const [newClientId, setNewClientId] = useState("");
   const [loading, setLoading] = useState(false);
