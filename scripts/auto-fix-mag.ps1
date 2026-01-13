@@ -1,44 +1,51 @@
-# MAG System - Auto Fix (PowerShell 5.1 SAFE)
-# Objetivo:
-# - Evitar PowerShell quebrar template strings do TS/TSX
-# - Gravar arquivos em UTF-8 sem BOM + CRLF
-# - Criar API clients module básico
-# - Criar WEB http.ts + clients.ts tipados
-# - Recriar Modal + Table + page.tsx (sem unknown[], sem any explícito)
-# - Rodar install + typecheck + lint --fix + build
+# MAG System - Auto Fix (PS 5.1 safe)
+# - Corrige CRLF/Prettier
+# - Corrige TS template strings (evita $path do PowerShell)
+# - Cria API ClientsModule
+# - Cria WEB http.ts + clients.ts tipados
+# - Reescreve ClientFormModal + ClientTable + clientes/page.tsx sem any/unknown
+# - Roda: install + typecheck + lint --fix + build
+#
+# USO:
+#   powershell -ExecutionPolicy Bypass -File .\scripts\auto-fix-mag.ps1
 
 $ErrorActionPreference = "Stop"
 $WarningPreference = "SilentlyContinue"
 
 function Step([string]$msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
-function Ok([string]$msg)   { Write-Host "[OK] $msg" -ForegroundColor Green }
-function Warn([string]$msg) { Write-Host "[WARN] $msg" -ForegroundColor Yellow }
-function Fail([string]$msg) { Write-Host "[ERRO] $msg" -ForegroundColor Red; throw $msg }
+function Ok([string]$msg)   { Write-Host "✅ $msg" -ForegroundColor Green }
+function Warn([string]$msg) { Write-Host "⚠️  $msg" -ForegroundColor Yellow }
+function Fail([string]$msg) { Write-Host "❌ $msg" -ForegroundColor Red; throw $msg }
 
-function Assert-RepoRoot([string]$repo) {
+function Assert-RepoRoot {
+  param([string]$repo)
   if (-not (Test-Path (Join-Path $repo "pnpm-workspace.yaml"))) {
     Fail "Execute na raiz do monorepo (onde existe pnpm-workspace.yaml). Atual: $repo"
   }
 }
 
-function Ensure-Dir([string]$path) {
+function Ensure-Dir {
+  param([string]$path)
   $dir = Split-Path $path -Parent
   if ($dir -and -not (Test-Path $dir)) {
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
   }
 }
 
-# UTF-8 sem BOM + CRLF
-function Write-FileCRLF([string]$path, [string]$content) {
+# Escreve arquivo com UTF-8 sem BOM e CRLF (prettier friendly no Windows)
+function Write-FileCRLF {
+  param([string]$path, [string]$content)
   Ensure-Dir $path
+  # normaliza para CRLF
   $c = $content -replace "`r`n", "`n"
   $c = $c -replace "`n", "`r`n"
   if (-not $c.EndsWith("`r`n")) { $c = $c + "`r`n" }
   [System.IO.File]::WriteAllText($path, $c, (New-Object System.Text.UTF8Encoding($false)))
-  Ok ("Gravado: " + $path)
+  Ok "Gravado: $path"
 }
 
-function Kill-Port([int]$port) {
+function Kill-Port {
+  param([int]$port)
   try {
     Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue |
       ForEach-Object {
@@ -49,7 +56,8 @@ function Kill-Port([int]$port) {
   } catch {}
 }
 
-function Run([string]$cmd, [string]$cwd = $null) {
+function Run {
+  param([string]$cmd, [string]$cwd = $null)
   $old = Get-Location
   try {
     if ($cwd) { Set-Location $cwd }
@@ -68,21 +76,21 @@ Assert-RepoRoot $repo
 
 $apiRoot = Join-Path $repo "apps\api"
 $webRoot = Join-Path $repo "apps\web"
-
-if (-not (Test-Path $apiRoot)) { Fail "Nao encontrado: apps/api" }
-if (-not (Test-Path $webRoot)) { Fail "Nao encontrado: apps/web" }
+if (-not (Test-Path $apiRoot)) { Fail "Não encontrado: $apiRoot" }
+if (-not (Test-Path $webRoot)) { Fail "Não encontrado: $webRoot" }
 
 Step "1) Limpar locks/caches + matar portas"
 Kill-Port 3000
 Kill-Port 3001
 Kill-Port 3002
+
 Remove-Item (Join-Path $webRoot ".next\dev\lock") -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $webRoot ".next") -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $apiRoot "dist") -Recurse -Force -ErrorAction SilentlyContinue
-Ok "Portas e caches limpos"
+Ok "Portas/caches limpos"
 
 # -----------------------------------------------------------------------------
-Step "2) API: ClientsModule + AppModule"
+Step "2) API: garantir ClientsModule + AppModule (prettier CRLF)"
 $clientsDir = Join-Path $apiRoot "src\clients"
 New-Item -ItemType Directory -Force -Path $clientsDir | Out-Null
 
@@ -169,10 +177,10 @@ import { ClientsModule } from './clients/clients.module';
 export class AppModule {}
 '@
 
-Ok "API criada/atualizada"
+Ok "API estabilizada (ClientsModule + AppModule)"
 
 # -----------------------------------------------------------------------------
-Step "3) WEB: http.ts + clients.ts (sem PowerShell quebrar `${}`)"
+Step "3) WEB: http.ts + clients.ts (tipado, sem PowerShell comer template string)"
 New-Item -ItemType Directory -Force -Path (Join-Path $webRoot "src\lib\api") | Out-Null
 
 Write-FileCRLF (Join-Path $webRoot "src\lib\api\http.ts") @'
@@ -280,11 +288,17 @@ export async function getClients(filters: ClientFilters, page = 1, limit = 10) {
 }
 
 export async function createClient(payload: unknown) {
-  return api<Client>('/clients', { method: 'POST', body: JSON.stringify(payload) });
+  return api<Client>('/clients', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function updateClient(id: string, payload: unknown) {
-  return api<Client>(`/clients/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+  return api<Client>(`/clients/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function deleteClient(id: string) {
@@ -292,10 +306,10 @@ export async function deleteClient(id: string) {
 }
 '@
 
-Ok "WEB API client tipado criado"
+Ok "WEB api client ok (sem any, sem PowerShell quebrar `${}`)"
 
 # -----------------------------------------------------------------------------
-Step "4) WEB: ClientFormModal (open/onClose)"
+Step "4) WEB: ClientFormModal (discriminatedUnion, props=open)"
 $modalPath = Join-Path $webRoot "src\app\(app)\clientes\_components\client-form-modal.tsx"
 Write-FileCRLF $modalPath @'
 'use client';
@@ -304,7 +318,7 @@ import * as React from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import type { Client } from '@/lib/api/clients';
+import type { Client, ClientStatus, ClientType } from '@/lib/api/clients';
 
 const StatusEnum = z.enum(['ATIVO', 'INATIVO', 'BLOQUEADO']);
 
@@ -338,8 +352,6 @@ type Props = {
   title?: string;
 };
 
-type ErrorMap = Partial<Record<string, { message?: string }>>;
-
 const DEFAULTS: ClientFormData = {
   type: 'PF',
   status: 'ATIVO',
@@ -362,24 +374,32 @@ export function ClientFormModal({ open, onClose, onSubmit, initial, title }: Pro
       return;
     }
 
+    const base: {
+      type: ClientType;
+      status: ClientStatus;
+      cellphone?: string;
+      email?: string;
+    } = {
+      type: initial.type,
+      status: initial.status,
+      cellphone: initial.cellphone,
+      email: initial.email,
+    };
+
     if (initial.type === 'PF') {
       form.reset({
+        ...base,
         type: 'PF',
-        status: initial.status,
         name: initial.name ?? '',
         cpf: initial.cpf ?? '',
-        cellphone: initial.cellphone ?? '',
-        email: initial.email ?? '',
       });
     } else {
       form.reset({
+        ...base,
         type: 'PJ',
-        status: initial.status,
         razaoSocial: initial.razaoSocial ?? '',
         cnpj: initial.cnpj ?? '',
         nomeFantasia: initial.nomeFantasia ?? '',
-        cellphone: initial.cellphone ?? '',
-        email: initial.email ?? '',
       });
     }
   }, [open, initial, form]);
@@ -387,7 +407,6 @@ export function ClientFormModal({ open, onClose, onSubmit, initial, title }: Pro
   if (!open) return null;
 
   const type = form.watch('type');
-  const errors = form.formState.errors as unknown as ErrorMap;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -395,7 +414,7 @@ export function ClientFormModal({ open, onClose, onSubmit, initial, title }: Pro
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">{title ?? (initial ? 'Editar Cliente' : 'Novo Cliente')}</h2>
           <button className="rounded px-2 py-1 text-sm hover:bg-gray-100" onClick={onClose}>
-            X
+            ✕
           </button>
         </div>
 
@@ -429,13 +448,17 @@ export function ClientFormModal({ open, onClose, onSubmit, initial, title }: Pro
               <label className="col-span-2 text-sm">
                 <div className="mb-1 font-medium text-gray-700">Nome</div>
                 <input className="w-full rounded border border-gray-300 p-2" {...form.register('name')} />
-                {errors.name?.message ? <p className="mt-1 text-xs text-red-500">{errors.name.message}</p> : null}
+                {'name' in form.formState.errors && form.formState.errors.name ? (
+                  <p className="mt-1 text-xs text-red-500">{form.formState.errors.name.message}</p>
+                ) : null}
               </label>
 
               <label className="text-sm">
                 <div className="mb-1 font-medium text-gray-700">CPF</div>
                 <input className="w-full rounded border border-gray-300 p-2" {...form.register('cpf')} />
-                {errors.cpf?.message ? <p className="mt-1 text-xs text-red-500">{errors.cpf.message}</p> : null}
+                {'cpf' in form.formState.errors && form.formState.errors.cpf ? (
+                  <p className="mt-1 text-xs text-red-500">{form.formState.errors.cpf.message}</p>
+                ) : null}
               </label>
 
               <label className="text-sm">
@@ -448,15 +471,17 @@ export function ClientFormModal({ open, onClose, onSubmit, initial, title }: Pro
               <label className="col-span-2 text-sm">
                 <div className="mb-1 font-medium text-gray-700">Razão Social</div>
                 <input className="w-full rounded border border-gray-300 p-2" {...form.register('razaoSocial')} />
-                {errors.razaoSocial?.message ? (
-                  <p className="mt-1 text-xs text-red-500">{errors.razaoSocial.message}</p>
+                {'razaoSocial' in form.formState.errors && (form.formState.errors as any).razaoSocial ? (
+                  <p className="mt-1 text-xs text-red-500">{(form.formState.errors as any).razaoSocial.message}</p>
                 ) : null}
               </label>
 
               <label className="text-sm">
                 <div className="mb-1 font-medium text-gray-700">CNPJ</div>
                 <input className="w-full rounded border border-gray-300 p-2" {...form.register('cnpj')} />
-                {errors.cnpj?.message ? <p className="mt-1 text-xs text-red-500">{errors.cnpj.message}</p> : null}
+                {'cnpj' in form.formState.errors && (form.formState.errors as any).cnpj ? (
+                  <p className="mt-1 text-xs text-red-500">{(form.formState.errors as any).cnpj.message}</p>
+                ) : null}
               </label>
 
               <label className="text-sm">
@@ -469,7 +494,9 @@ export function ClientFormModal({ open, onClose, onSubmit, initial, title }: Pro
           <label className="text-sm">
             <div className="mb-1 font-medium text-gray-700">E-mail</div>
             <input className="w-full rounded border border-gray-300 p-2" {...form.register('email')} />
-            {errors.email?.message ? <p className="mt-1 text-xs text-red-500">{errors.email.message}</p> : null}
+            {'email' in form.formState.errors && form.formState.errors.email ? (
+              <p className="mt-1 text-xs text-red-500">{form.formState.errors.email.message}</p>
+            ) : null}
           </label>
 
           <div className="flex justify-end gap-3 pt-4">
@@ -491,10 +518,10 @@ export function ClientFormModal({ open, onClose, onSubmit, initial, title }: Pro
 }
 '@
 
-Ok "Modal criado"
+Ok "ClientFormModal refeito (props=open, sem TS2322 do resolver)"
 
 # -----------------------------------------------------------------------------
-Step "5) WEB: ClientTable tipado"
+Step "5) WEB: ClientTable sem any (tipado)"
 $tablePath = Join-Path $webRoot "src\app\(app)\clientes\_components\client-table.tsx"
 Write-FileCRLF $tablePath @'
 'use client';
@@ -526,7 +553,7 @@ export function ClientTable({ items, onEdit, onDelete }: Props) {
             <th className="px-3 py-2 text-left font-medium text-gray-700">CPF/CNPJ</th>
             <th className="px-3 py-2 text-left font-medium text-gray-700">Telefone</th>
             <th className="px-3 py-2 text-left font-medium text-gray-700">Status</th>
-            <th className="px-3 py-2 text-right font-medium text-gray-700">Acoes</th>
+            <th className="px-3 py-2 text-right font-medium text-gray-700">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -563,10 +590,10 @@ export function ClientTable({ items, onEdit, onDelete }: Props) {
 }
 '@
 
-Ok "Tabela criada"
+Ok "ClientTable refeito (zera any)"
 
 # -----------------------------------------------------------------------------
-Step "6) WEB: clientes/page.tsx (zera unknown[] e corrige open/isOpen)"
+Step "6) WEB: clientes/page.tsx (zera unknown[] + ajusta open/isOpen)"
 $pagePath = Join-Path $webRoot "src\app\(app)\clientes\page.tsx"
 Write-FileCRLF $pagePath @'
 'use client';
@@ -585,7 +612,7 @@ import {
   type ListResponse,
 } from '@/lib/api/clients';
 
-function toPayload(v: ClientFormData): Record<string, unknown> {
+function toCreatePayload(v: ClientFormData): Record<string, unknown> {
   if (v.type === 'PF') {
     return {
       type: 'PF',
@@ -611,9 +638,9 @@ export default function ClientesPage() {
   const qc = useQueryClient();
 
   const [filters, setFilters] = React.useState<ClientFilters>({ type: 'ALL', status: 'ALL', search: '' });
-  const [page, setPage] = React.useState<number>(1);
+  const [page, setPage] = React.useState(1);
 
-  const [open, setOpen] = React.useState<boolean>(false);
+  const [open, setOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Client | null>(null);
 
   const q = useQuery<ListResponse<Client>>({
@@ -623,14 +650,14 @@ export default function ClientesPage() {
   });
 
   const createMut = useMutation({
-    mutationFn: async (data: ClientFormData) => createClient(toPayload(data)),
+    mutationFn: async (data: ClientFormData) => createClient(toCreatePayload(data)),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['clients'] });
     },
   });
 
   const updateMut = useMutation({
-    mutationFn: async (args: { id: string; data: ClientFormData }) => updateClient(args.id, toPayload(args.data)),
+    mutationFn: async (args: { id: string; data: ClientFormData }) => updateClient(args.id, toCreatePayload(args.data)),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['clients'] });
     },
@@ -650,7 +677,7 @@ export default function ClientesPage() {
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Clientes</h1>
-          <p className="text-sm text-gray-500">Cadastro e gestao de clientes PF/PJ</p>
+          <p className="text-sm text-gray-500">Cadastro e gestão de clientes PF/PJ</p>
         </div>
 
         <button
@@ -684,8 +711,8 @@ export default function ClientesPage() {
           }}
         >
           <option value="ALL">Tipo: Todos</option>
-          <option value="PF">Pessoa Fisica</option>
-          <option value="PJ">Pessoa Juridica</option>
+          <option value="PF">Pessoa Física</option>
+          <option value="PJ">Pessoa Jurídica</option>
         </select>
 
         <select
@@ -723,16 +750,22 @@ export default function ClientesPage() {
       />
 
       <div className="flex items-center justify-between text-sm text-gray-600">
-        <button className="rounded border px-3 py-1 disabled:opacity-50" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+        <button
+          className="rounded border px-3 py-1 disabled:opacity-50"
+          disabled={page <= 1}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+        >
           Anterior
         </button>
-        <span>Pagina {page}</span>
+
+        <span>Página {page}</span>
+
         <button
           className="rounded border px-3 py-1 disabled:opacity-50"
           disabled={!q.data?.meta || page >= (q.data.meta.pages || page)}
           onClick={() => setPage((p) => p + 1)}
         >
-          Proxima
+          Próxima
         </button>
       </div>
 
@@ -755,19 +788,30 @@ export default function ClientesPage() {
 }
 '@
 
-Ok "Page criada"
+Ok "clientes/page.tsx refeito (zera unknown[], corrige open/isOpen, CRUD pronto)"
 
 # -----------------------------------------------------------------------------
-Step "7) pnpm install (frozen lockfile)"
+Step "7) pnpm install (frozen)"
 Run "corepack pnpm install --frozen-lockfile"
 
 Step "8) typecheck"
 Run "corepack pnpm -w typecheck"
 
-Step "9) lint --fix"
+Step "9) lint --fix (correto)"
+# Rodar recursivo, cada pacote com seu script
 Run "corepack pnpm -r lint -- --fix"
 
 Step "10) build"
 Run "corepack pnpm -w build"
 
-Ok "Script finalizado"
+Step "11) subir dev (opcional: abre duas janelas)"
+try {
+  Start-Process powershell -WorkingDirectory $apiRoot -ArgumentList @("-NoExit", "-Command", "corepack pnpm dev")
+  Start-Sleep -Seconds 2
+  Start-Process powershell -WorkingDirectory $webRoot -ArgumentList @("-NoExit", "-Command", "corepack pnpm dev")
+  Ok "DEV: API http://localhost:3001 | WEB http://localhost:3000/clientes"
+} catch {
+  Warn "Não consegui abrir os processos automaticamente. Rode manual: (1) cd apps/api && pnpm dev  (2) cd apps/web && pnpm dev"
+}
+
+Ok "Auto-fix finalizado 🚀"

@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==================== USERS ====================
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -24,4 +25,101 @@ enum UserRole {
   ADMIN
   MANAGER
   USER
+}
+
+// ==================== CLIENTS ====================
+model Client {
+  id                String       @id @default(cuid())
+  type              ClientType
+  name              String
+  email             String?
+  phone             String?
+  doc               String       @unique
+
+  // PF (Pessoa Física)
+  cpf               String?      @unique
+  rg                String?
+  cnh               String?
+  cnhCategory       String?
+  cnhExpiration     DateTime?    // ✅ MUDADO: String? → DateTime?
+
+  // PJ (Pessoa Jurídica)
+  cnpj              String?      @unique
+  razaoSocial       String?
+  inscricaoEstadual String?
+  ie                String?      // ✅ ADICIONADO: Alias para inscricaoEstadual
+  responsibleName   String?
+  responsiblePhone  String?
+
+  // Endereço
+  cep               String?
+  logradouro        String?
+  numero            String?
+  complemento       String?
+  bairro            String?
+  cidade            String?
+  uf                String?
+
+  status            ClientStatus @default(ATIVO)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  drivers           Driver[]
+
+  @@map("clients")
+}
+
+enum ClientType {
+  PF
+  PJ
+}
+
+enum ClientStatus {
+  ATIVO
+  INATIVO
+  BLOQUEADO
+}
+
+// ==================== DRIVERS ====================
+model Driver {
+  id          String        @id @default(uuid())
+  name        String
+  cpf         String        @unique
+  email       String
+  cnh         String?       // ✅ MUDADO: String → String? (pode ser null)
+  status      DriverStatus  @default(ATIVO)
+
+  // CNH
+  cnhCategory CNHCategory?
+  cnhValidade DateTime?
+
+  // Contato
+  telefone    String?
+  phone       String?
+
+  // Relacionamento com Cliente PJ
+  clientId    String?
+  client      Client?       @relation(fields: [clientId], references: [id])
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("drivers")
+}
+
+enum DriverStatus {
+  ATIVO
+  INATIVO
+}
+
+enum CNHCategory {
+  A
+  B
+  C
+  D
+  E
+  AB
+  AC
+  AD
+  AE
 }

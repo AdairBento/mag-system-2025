@@ -21,8 +21,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/http";
 import { maskCPF, maskCNPJ, maskPhone } from "@/utils/masks";
 
-import type { Client, ClientType, Driver } from "./_components/types";
-import { normalizePaged } from "./_components/types";
+import type { Client, ClientType } from "@/types/client";
+import type { Driver } from "@/types/driver";
 import { ClientFormModal } from "./_components/client-form-modal";
 import { DriverFormModal } from "./_components/driver-form-modal";
 
@@ -36,7 +36,7 @@ export default function ClientsPage() {
   // clients filters
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | ClientType>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | "ATIVO" | "INADIMPLENTE" | "BLOQUEADO">(
+  const [statusFilter, setStatusFilter] = useState<"all" | "ATIVO" | "INATIVO" | "BLOQUEADO">(
     "all",
   );
   const [page, setPage] = useState(1);
@@ -63,8 +63,10 @@ export default function ClientsPage() {
       params.set("page", String(page));
       params.set("limit", String(pageSize));
 
-      const data = await apiClient.get<unknown>("/clients?" + params.toString());
-      return normalizePaged<Client>(data);
+      const data = await apiClient.get<{ items: Client[]; total: number }>(
+        "/clients?" + params.toString(),
+      );
+      return data;
     },
   });
 
@@ -76,8 +78,10 @@ export default function ClientsPage() {
       params.set("page", String(driverPage));
       params.set("limit", String(pageSize));
 
-      const data = await apiClient.get<unknown>("/drivers?" + params.toString());
-      return normalizePaged<Driver>(data);
+      const data = await apiClient.get<{ items: Driver[]; total: number }>(
+        "/drivers?" + params.toString(),
+      );
+      return data;
     },
   });
 
@@ -130,7 +134,6 @@ export default function ClientsPage() {
 
       // migração: se editar e mudar clientId
       if (isUpdate && editingDriver?.clientId && payload.clientId !== editingDriver.clientId) {
-        // ✅ SEM fetch solto, SEM conflito
         return apiClient.post(`/drivers/${driverId}/migrate`, { newClientId: payload.clientId });
       }
 
@@ -147,9 +150,12 @@ export default function ClientsPage() {
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
     },
     onError: (err: unknown) => {
-      // 409 -> conflito/migração/regras (você pode melhorar depois)
+      // ✅ Deixar erro 409 passar para o modal tratar
       const error = err as { response?: { status?: number } };
-      if (error?.response?.status === 409) return;
+      if (error?.response?.status === 409) {
+        console.log("🔄 Erro 409 - Modal vai tratar migração");
+        return;
+      }
       toast.error("Erro ao salvar motorista");
     },
   });
@@ -278,7 +284,7 @@ export default function ClientsPage() {
             >
               <option value="all">Status: Todos</option>
               <option value="ATIVO">Ativos</option>
-              <option value="INADIMPLENTE">Inadimplentes</option>
+              <option value="INATIVO">Inativos</option>
               <option value="BLOQUEADO">Bloqueados</option>
             </select>
           </div>
@@ -451,10 +457,12 @@ export default function ClientsPage() {
                       className="border-t border-slate-100 hover:bg-slate-50 transition-colors"
                     >
                       <td className="px-4 py-3 font-medium text-slate-900">{d.name}</td>
-                      <td className="px-4 py-3 text-slate-600">{d.client?.name || "—"}</td>
+                      <td className="px-4 py-3 text-slate-600">{d.clientName || "—"}</td>
                       <td className="px-4 py-3 text-slate-600">{maskCPF(d.cpf || "")}</td>
-                      <td className="px-4 py-3 text-slate-600">{d.cnh}</td>
-                      <td className="px-4 py-3 text-slate-600">{maskPhone(d.telefone || "")}</td>
+                      <td className="px-4 py-3 text-slate-600">{d.cnh || "—"}</td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {maskPhone(d.telefone || "") || "—"}
+                      </td>
                       <td className="px-4 py-3 text-right">
                         <div className="inline-flex gap-1">
                           <button
@@ -521,7 +529,15 @@ export default function ClientsPage() {
               setIsDriverModalOpen(false);
               setEditingDriver(null);
             }}
-            onSubmit={(payload) => saveDriver.mutate(payload)}
+            onSubmit={async (payload: Record<string, unknown>) => {
+              // ✅ Usar mutateAsync para propagar o erro 409 ao modal
+              try {
+                await saveDriver.mutateAsync(payload);
+              } catch (error) {
+                // ✅ Repassar erro para o modal tratar
+                throw error;
+              }
+            }}
           />
         </>
       )}

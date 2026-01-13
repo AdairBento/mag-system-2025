@@ -18,7 +18,7 @@ export type Driver = {
   name: string;
 
   cpf: string;
-  cnh?: string | null;
+  cnh: string | null;
 
   // UI atual usa isso
   cnhCategory?: CNHCategory | null;
@@ -52,7 +52,7 @@ export type DriverFilters = {
 export type CreateDriverPayload = {
   name: string;
   cpf: string;
-  cnh?: string | null;
+  cnh: string | null;
 
   cnhCategory?: CNHCategory | null;
   cnhValidade?: string | null;

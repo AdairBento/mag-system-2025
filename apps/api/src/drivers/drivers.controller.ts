@@ -8,46 +8,54 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ClientsService } from './clients.service';
+import { DriversService } from './drivers.service';
 
-@Controller('clients')
-export class ClientsController {
-  constructor(private readonly clientsService: ClientsService) {}
+@Controller('drivers')
+export class DriversController {
+  constructor(private readonly driversService: DriversService) {}
 
   @Get()
   async findAll(
     @Query('page') page = '1',
     @Query('limit') limit = '10',
     @Query('search') search?: string,
-    @Query('type') type?: string,
     @Query('status') status?: string,
+    @Query('clientId') clientId?: string,
   ) {
-    return this.clientsService.findAll({
+    return this.driversService.findAll({
       page: Number(page) || 1,
       limit: Number(limit) || 10,
       search,
-      type,
       status,
+      clientId,
     });
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.clientsService.findOne(id);
+    return this.driversService.findOne(id);
   }
 
   @Post()
   async create(@Body() data: any) {
-    return this.clientsService.create(data);
+    return this.driversService.create(data);
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() data: any) {
-    return this.clientsService.update(id, data);
+    return this.driversService.update(id, data);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return this.clientsService.remove(id);
+    return this.driversService.remove(id);
+  }
+
+  @Post(':id/migrate')
+  async migrate(
+    @Param('id') id: string,
+    @Body() data: { newClientId: string },
+  ) {
+    return this.driversService.migrate(id, data.newClientId);
   }
 }
