@@ -41,13 +41,13 @@ model Client {
   rg                String?
   cnh               String?
   cnhCategory       String?
-  cnhExpiration     DateTime?    // ✅ MUDADO: String? → DateTime?
+  cnhExpiration     DateTime?
 
   // PJ (Pessoa Jurídica)
   cnpj              String?      @unique
   razaoSocial       String?
   inscricaoEstadual String?
-  ie                String?      // ✅ ADICIONADO: Alias para inscricaoEstadual
+  ie                String?
   responsibleName   String?
   responsiblePhone  String?
 
@@ -86,7 +86,7 @@ model Driver {
   name        String
   cpf         String        @unique
   email       String
-  cnh         String?       // ✅ MUDADO: String → String? (pode ser null)
+  cnh         String?
   status      DriverStatus  @default(ATIVO)
 
   // CNH
@@ -122,4 +122,32 @@ enum CNHCategory {
   AC
   AD
   AE
+}
+
+// ==================== VEHICLES ====================
+model Vehicle {
+  id             String        @id @default(uuid())
+  placa          String        @unique
+  marca          String
+  modelo         String
+  ano            Int
+  cor            String?
+  quilometragem  Int           @default(0)
+  renavam        String?       @unique
+  chassi         String?       @unique
+  status         VehicleStatus @default(DISPONIVEL)
+  valorDiaria    Float         @default(0)
+  valorSemanal   Float         @default(0)
+  valorMensal    Float         @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("vehicles")
+}
+
+enum VehicleStatus {
+  DISPONIVEL
+  LOCADO
+  MANUTENCAO
+  INATIVO
 }
