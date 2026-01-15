@@ -41,6 +41,9 @@ export function VehicleFormModal({
     renavam: "",
     chassi: "",
     status: "DISPONIVEL",
+    valorDiaria: 0,
+    valorSemanal: 0,
+    valorMensal: 0,
   });
 
   useEffect(() => {
@@ -56,6 +59,9 @@ export function VehicleFormModal({
         renavam: initialData.renavam || "",
         chassi: initialData.chassi || "",
         status: initialData.status,
+        valorDiaria: (initialData as any).valorDiaria || 0,
+        valorSemanal: (initialData as any).valorSemanal || 0,
+        valorMensal: (initialData as any).valorMensal || 0,
       });
     } else {
       setFormData({
@@ -69,12 +75,22 @@ export function VehicleFormModal({
         renavam: "",
         chassi: "",
         status: "DISPONIVEL",
+        valorDiaria: 0,
+        valorSemanal: 0,
+        valorMensal: 0,
       });
     }
   }, [initialData, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validação: TODOS os valores devem ser preenchidos
+    if (!formData.valorDiaria || !formData.valorSemanal || !formData.valorMensal) {
+      alert("❌ Todos os valores (Diária, Semanal e Mensal) devem ser preenchidos!");
+      return;
+    }
+
     await onSubmit(formData);
     onClose();
   };
@@ -225,6 +241,60 @@ export function VehicleFormModal({
                 <option value="MANUTENCAO">Manutenção</option>
                 <option value="INATIVO">Inativo</option>
               </select>
+            </div>
+          </div>
+
+          {/* Seção de Valores */}
+          <div className="bg-orange-50 p-4 rounded border border-orange-200">
+            <p className="text-sm font-medium mb-3 flex items-center gap-2 text-orange-900">
+              🔥 Valores (Todos obrigatórios) *
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Diária (R$) *</label>
+                <input
+                  type="number"
+                  value={formData.valorDiaria}
+                  onChange={(e) =>
+                    setFormData({ ...formData, valorDiaria: Number(e.target.value) })
+                  }
+                  className="w-full border rounded px-3 py-2"
+                  min="0"
+                  step="0.01"
+                  placeholder="150.00"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Semanal (R$) *</label>
+                <input
+                  type="number"
+                  value={formData.valorSemanal}
+                  onChange={(e) =>
+                    setFormData({ ...formData, valorSemanal: Number(e.target.value) })
+                  }
+                  className="w-full border rounded px-3 py-2"
+                  min="0"
+                  step="0.01"
+                  placeholder="900.00"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Mensal (R$) *</label>
+                <input
+                  type="number"
+                  value={formData.valorMensal}
+                  onChange={(e) =>
+                    setFormData({ ...formData, valorMensal: Number(e.target.value) })
+                  }
+                  className="w-full border rounded px-3 py-2"
+                  min="0"
+                  step="0.01"
+                  placeholder="3000.00"
+                  required
+                />
+              </div>
             </div>
           </div>
 
