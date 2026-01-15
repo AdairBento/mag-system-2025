@@ -25,3 +25,30 @@ enum UserRole {
   MANAGER
   USER
 }
+
+model Vehicle {
+  id             String        @id @default(uuid())
+  placa          String        @unique
+  marca          String
+  modelo         String
+  ano            Int
+  cor            String?
+  quilometragem  Int           @default(0)
+  renavam        String?       @unique
+  chassi         String?       @unique
+  status         VehicleStatus @default(DISPONIVEL)
+  valorDiaria    Float         @default(0)
+  valorSemanal   Float         @default(0)
+  valorMensal    Float         @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("vehicles")
+}
+
+enum VehicleStatus {
+  DISPONIVEL
+  LOCADO
+  MANUTENCAO
+  INATIVO
+}
