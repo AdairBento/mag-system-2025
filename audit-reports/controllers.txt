@@ -1,0 +1,12 @@
+
+FullName
+--------
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\application\files\ts\src\app.controller.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\controller\files\ts\__name__.controller.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\resource\files\ts\__name__.controller.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\sub-app\files\ts\src\__name__.controller.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\clients\clients.controller.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\health\health.controller.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\vehicles\vehicles.controller.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\app.controller.ts
+

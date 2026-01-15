@@ -17,6 +17,7 @@
 ```
 
 **Opções disponíveis:**
+
 - 💻 Usar PostgreSQL local existente
 - 🐳 Criar container Docker automaticamente
 - ✏️ Configurar manualmente
@@ -28,6 +29,7 @@
 ```
 
 Isso abrirá 2 terminais:
+
 - 🔥 **API** rodando em `http://localhost:3001`
 - 🌐 **Frontend** rodando em `http://localhost:3000`
 
@@ -44,22 +46,26 @@ pnpm install
 ### 2️⃣ Configure o PostgreSQL
 
 **Opção A: Docker**
+
 ```bash
 docker run --name mag-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=mag_locacao -p 5432:5432 -d postgres:15
 ```
 
 **Opção B: PostgreSQL Local**
+
 - Instale PostgreSQL: https://www.postgresql.org/download/
 - Crie o banco: `CREATE DATABASE mag_locacao;`
 
 ### 3️⃣ Crie os arquivos `.env`
 
 **`packages/database/.env`:**
+
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mag_locacao?schema=public"
 ```
 
 **`apps/api/.env`:**
+
 ```env
 NODE_ENV=development
 PORT=3001
@@ -78,12 +84,14 @@ cd ../..
 ### 5️⃣ Inicie os servidores
 
 **Terminal 1 - API:**
+
 ```bash
 cd apps/api
 pnpm dev
 ```
 
 **Terminal 2 - Frontend:**
+
 ```bash
 cd apps/web
 pnpm dev
@@ -127,6 +135,7 @@ pnpm prisma migrate dev
 ### Erro: "Can't reach database server"
 
 ➡️ Verifique se o PostgreSQL está rodando:
+
 ```bash
 docker ps  # Se usando Docker
 ```
@@ -136,6 +145,7 @@ docker ps  # Se usando Docker
 ## 📞 Suporte
 
 Em caso de problemas, verifique:
+
 1. PostgreSQL está rodando?
 2. Arquivos `.env` estão criados?
 3. Migrações foram executadas?

@@ -1,0 +1,19 @@
+
+> mag-system-webapp@ typecheck C:\Users\adair\PycharmProject\MAG-system-webapp
+> pnpm -r typecheck
+
+Scope: 4 of 5 workspace projects
+packages/database typecheck$ tsc -p tsconfig.json --noEmit
+packages/shared typecheck$ tsc -p tsconfig.json --noEmit
+packages/shared typecheck: Done
+packages/database typecheck: Done
+apps/api typecheck$ tsc -p tsconfig.typecheck.json --noEmit
+apps/web typecheck$ tsc -p tsconfig.json --noEmit
+apps/api typecheck: Done
+apps/web typecheck: src/app/(app)/veiculos/_components/index.ts(3,15): error TS2724: '"./vehicle-form-modal"' has no exported member named 'VehicleFormData'. Did you mean 'VehicleFormModal'?
+apps/web typecheck: src/app/(app)/veiculos/page.tsx(6,23): error TS2307: Cannot find module 'sonner' or its corresponding type declarations.
+apps/web typecheck: Failed
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web:
+ÔÇëERR_PNPM_RECURSIVE_RUN_FIRST_FAILÔÇë @mag/web@0.1.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 1
+ÔÇëELIFECYCLEÔÇë Command failed with exit code 1.

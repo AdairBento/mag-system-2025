@@ -1,0 +1,13 @@
+
+FullName
+--------
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\application\files\ts\src\app.service.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\library\files\ts\src\__name__.service.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\resource\files\ts\__name__.service.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\service\files\ts\__name__.service.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\sub-app\files\ts\src\__name__.service.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\clients\clients.service.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\prisma\prisma.service.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\vehicles\vehicles.service.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\app.service.ts
+

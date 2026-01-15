@@ -51,7 +51,11 @@ export class VehiclesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Buscar veículo por ID' })
-  @ApiResponse({ status: 200, description: 'Veículo encontrado', type: Vehicle })
+  @ApiResponse({
+    status: 200,
+    description: 'Veículo encontrado',
+    type: Vehicle,
+  })
   @ApiResponse({ status: 404, description: 'Veículo não encontrado' })
   findOne(@Param('id') id: string) {
     return this.vehiclesService.findOne(id);
@@ -59,7 +63,11 @@ export class VehiclesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualizar veículo' })
-  @ApiResponse({ status: 200, description: 'Veículo atualizado', type: Vehicle })
+  @ApiResponse({
+    status: 200,
+    description: 'Veículo atualizado',
+    type: Vehicle,
+  })
   @ApiResponse({ status: 404, description: 'Veículo não encontrado' })
   @ApiResponse({ status: 409, description: 'Placa/RENAVAM/Chassi duplicados' })
   update(

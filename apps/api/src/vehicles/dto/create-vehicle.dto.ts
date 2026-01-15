@@ -1,4 +1,11 @@
-import { IsString, IsInt, IsOptional, IsEnum, IsNumber, Min } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  Min,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum VehicleStatus {
@@ -36,12 +43,18 @@ export class CreateVehicleDto {
   @Min(0)
   quilometragem: number;
 
-  @ApiPropertyOptional({ example: '12345678901', description: 'Número RENAVAM' })
+  @ApiPropertyOptional({
+    example: '12345678901',
+    description: 'Número RENAVAM',
+  })
   @IsOptional()
   @IsString()
   renavam?: string;
 
-  @ApiPropertyOptional({ example: '9BWZZZ377VT004251', description: 'Número do chassi' })
+  @ApiPropertyOptional({
+    example: '9BWZZZ377VT004251',
+    description: 'Número do chassi',
+  })
   @IsOptional()
   @IsString()
   chassi?: string;

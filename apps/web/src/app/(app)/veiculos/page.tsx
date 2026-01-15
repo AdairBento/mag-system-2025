@@ -4,14 +4,13 @@ import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Search, Plus, Edit, Trash2, Car, Filter, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { VehicleFormModal } from "./_components";
+import { VehicleFormModal, type VehicleFormData } from "./_components";
 import {
   getVehicles,
   createVehicle,
   updateVehicle,
   deleteVehicle,
   type Vehicle,
-  type VehicleFilters,
   type ListResponse,
 } from "@/lib/api/vehicles";
 
@@ -38,7 +37,11 @@ export default function VeiculosPage() {
   const itemsPerPage = 10;
   const queryClient = useQueryClient();
 
-  const { data: response, isLoading, isError } = useQuery<ListResponse<Vehicle>>({
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useQuery<ListResponse<Vehicle>>({
     queryKey: ["vehicles"],
     queryFn: () => getVehicles({ search: "", status: "ALL" }, 1, 100),
   });
@@ -54,6 +57,28 @@ export default function VeiculosPage() {
     },
   });
 
+  const createMut = useMutation({
+    mutationFn: (data: VehicleFormData) => createVehicle(data),
+    onSuccess: () => {
+      toast.success("✅ Veículo cadastrado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+    },
+    onError: () => {
+      toast.error("❌ Erro ao cadastrar veículo");
+    },
+  });
+
+  const updateMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: VehicleFormData }) => updateVehicle(id, data),
+    onSuccess: () => {
+      toast.success("✅ Veículo atualizado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+    },
+    onError: () => {
+      toast.error("❌ Erro ao atualizar veículo");
+    },
+  });
+
   const vehicles = response?.data || [];
 
   const handleDelete = async (id: string) => {
@@ -62,15 +87,13 @@ export default function VeiculosPage() {
     if (!vehicle) return;
 
     if (vehicle.status === "LOCADO") {
-      toast.error(
-        "❌ Este veículo está LOCADO e não pode ser excluído! Finalize a locação antes."
-      );
+      toast.error("❌ Este veículo está LOCADO e não pode ser excluído! Finalize a locação antes.");
       return;
     }
 
     if (vehicle.status === "MANUTENCAO") {
       const confirmMaintenance = confirm(
-        "⚠️ Este veículo está em MANUTENÇÃO.\n\nTem certeza que deseja excluir?"
+        "⚠️ Este veículo está em MANUTENÇÃO.\n\nTem certeza que deseja excluir?",
       );
       if (!confirmMaintenance) return;
     }
@@ -103,20 +126,16 @@ export default function VeiculosPage() {
     manutencao: vehicles.filter((v: Vehicle) => v.status === "MANUTENCAO").length,
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: VehicleFormData) => {
     try {
       if (data.id) {
-        await updateVehicle(data.id, data);
-        toast.success("✅ Veículo atualizado com sucesso!");
+        await updateMut.mutateAsync({ id: data.id, data });
       } else {
-        await createVehicle(data);
-        toast.success("✅ Veículo cadastrado com sucesso!");
+        await createMut.mutateAsync(data);
       }
-      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       setIsModalOpen(false);
       setSelectedVehicle(null);
-    } catch (error: any) {
-      toast.error("❌ Erro ao salvar veículo");
+    } catch (error) {
       console.error(error);
     }
   };
@@ -251,9 +270,7 @@ export default function VeiculosPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
             <Car className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Nenhum veículo cadastrado
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum veículo cadastrado</h3>
           <p className="text-gray-600 mb-6">Comece adicionando seu primeiro veículo à frota!</p>
           <button
             onClick={() => setIsModalOpen(true)}

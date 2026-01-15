@@ -1,0 +1,15 @@
+
+FullName
+--------
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\application\files\ts\src\app.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\client-app\angular\files\angular.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\library\files\ts\src\__name__.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\module\files\ts\__name__.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\resource\files\ts\__name__.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\node_modules\@nestjs\schematics\dist\lib\sub-app\files\ts\src\__name__.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\clients\clients.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\common\logger\logger.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\prisma\prisma.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\vehicles\vehicles.module.ts
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\api\src\app.module.ts
+

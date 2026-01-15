@@ -4,10 +4,26 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import type { Vehicle } from "@/lib/api/vehicles";
 
+export interface VehicleFormData {
+  id: string;
+  placa: string;
+  marca: string;
+  modelo: string;
+  ano: number;
+  cor: string;
+  quilometragem: number;
+  renavam: string;
+  chassi: string;
+  status: string;
+  valorDiaria: number;
+  valorSemanal: number;
+  valorMensal: number;
+}
+
 interface VehicleFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: VehicleFormData) => Promise<void>;
   initialData?: Vehicle | null;
 }
 
@@ -24,68 +40,56 @@ const CAR_COLORS = [
   "Bege",
 ];
 
+const DEFAULT_FORM_DATA: VehicleFormData = {
+  id: "",
+  placa: "",
+  marca: "",
+  modelo: "",
+  ano: new Date().getFullYear(),
+  cor: "",
+  quilometragem: 0,
+  renavam: "",
+  chassi: "",
+  status: "DISPONIVEL",
+  valorDiaria: 0,
+  valorSemanal: 0,
+  valorMensal: 0,
+};
+
 export function VehicleFormModal({
   isOpen,
   onClose,
   onSubmit,
   initialData,
 }: VehicleFormModalProps) {
-  const [formData, setFormData] = useState({
-    id: "",
-    placa: "",
-    marca: "",
-    modelo: "",
-    ano: new Date().getFullYear(),
-    cor: "",
-    quilometragem: 0,
-    renavam: "",
-    chassi: "",
-    status: "DISPONIVEL",
-    valorDiaria: 0,
-    valorSemanal: 0,
-    valorMensal: 0,
-  });
+  const [formData, setFormData] = useState<VehicleFormData>(DEFAULT_FORM_DATA);
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        id: initialData.id,
-        placa: initialData.placa,
-        marca: initialData.marca,
-        modelo: initialData.modelo,
-        ano: initialData.ano,
-        cor: initialData.cor || "",
-        quilometragem: initialData.quilometragem || 0,
-        renavam: initialData.renavam || "",
-        chassi: initialData.chassi || "",
-        status: initialData.status,
-        valorDiaria: (initialData as any).valorDiaria || 0,
-        valorSemanal: (initialData as any).valorSemanal || 0,
-        valorMensal: (initialData as any).valorMensal || 0,
-      });
-    } else {
-      setFormData({
-        id: "",
-        placa: "",
-        marca: "",
-        modelo: "",
-        ano: new Date().getFullYear(),
-        cor: "",
-        quilometragem: 0,
-        renavam: "",
-        chassi: "",
-        status: "DISPONIVEL",
-        valorDiaria: 0,
-        valorSemanal: 0,
-        valorMensal: 0,
-      });
-    }
+    const newFormData = initialData
+      ? {
+          id: initialData.id,
+          placa: initialData.placa,
+          marca: initialData.marca,
+          modelo: initialData.modelo,
+          ano: initialData.ano,
+          cor: initialData.cor || "",
+          quilometragem: initialData.quilometragem || 0,
+          renavam: initialData.renavam || "",
+          chassi: initialData.chassi || "",
+          status: initialData.status,
+          valorDiaria: initialData.valorDiaria || 0,
+          valorSemanal: initialData.valorSemanal || 0,
+          valorMensal: initialData.valorMensal || 0,
+        }
+      : DEFAULT_FORM_DATA;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFormData(newFormData);
   }, [initialData, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validação: TODOS os valores devem ser preenchidos
     if (!formData.valorDiaria || !formData.valorSemanal || !formData.valorMensal) {
       alert("❌ Todos os valores (Diária, Semanal e Mensal) devem ser preenchidos!");
       return;
@@ -104,7 +108,6 @@ export function VehicleFormModal({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h2 className="text-2xl font-bold text-gray-900">
             {initialData ? "Editar Veículo" : "Novo Veículo"}
@@ -117,18 +120,14 @@ export function VehicleFormModal({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="grid grid-cols-2 gap-4">
-            {/* Placa */}
             <div>
               <label className={labelClass}>Placa *</label>
               <input
                 type="text"
                 value={formData.placa}
-                onChange={(e) =>
-                  setFormData({ ...formData, placa: e.target.value.toUpperCase() })
-                }
+                onChange={(e) => setFormData({ ...formData, placa: e.target.value.toUpperCase() })}
                 className={inputClass}
                 placeholder="ABC-1234"
                 maxLength={8}
@@ -136,7 +135,6 @@ export function VehicleFormModal({
               />
             </div>
 
-            {/* Marca */}
             <div>
               <label className={labelClass}>Marca *</label>
               <input
@@ -149,7 +147,6 @@ export function VehicleFormModal({
               />
             </div>
 
-            {/* Modelo */}
             <div>
               <label className={labelClass}>Modelo *</label>
               <input
@@ -162,7 +159,6 @@ export function VehicleFormModal({
               />
             </div>
 
-            {/* Ano */}
             <div>
               <label className={labelClass}>Ano *</label>
               <input
@@ -176,7 +172,6 @@ export function VehicleFormModal({
               />
             </div>
 
-            {/* Cor */}
             <div>
               <label className={labelClass}>Cor</label>
               <select
@@ -193,7 +188,6 @@ export function VehicleFormModal({
               </select>
             </div>
 
-            {/* Quilometragem */}
             <div>
               <label className={labelClass}>Quilometragem (km) *</label>
               <input
@@ -208,7 +202,6 @@ export function VehicleFormModal({
               />
             </div>
 
-            {/* Renavam */}
             <div>
               <label className={labelClass}>RENAVAM</label>
               <input
@@ -221,22 +214,18 @@ export function VehicleFormModal({
               />
             </div>
 
-            {/* Chassi */}
             <div>
               <label className={labelClass}>CHASSI</label>
               <input
                 type="text"
                 value={formData.chassi}
-                onChange={(e) =>
-                  setFormData({ ...formData, chassi: e.target.value.toUpperCase() })
-                }
+                onChange={(e) => setFormData({ ...formData, chassi: e.target.value.toUpperCase() })}
                 className={inputClass}
                 placeholder="9BWZZZ377VT004251"
                 maxLength={17}
               />
             </div>
 
-            {/* Status */}
             <div className="col-span-2">
               <label className={labelClass}>Status *</label>
               <select
@@ -253,13 +242,10 @@ export function VehicleFormModal({
             </div>
           </div>
 
-          {/* Seção de Valores - Fundo Laranja Vibrante */}
           <div className="bg-gradient-to-br from-orange-100 to-orange-50 border-2 border-orange-300 rounded-xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-2xl">🔥</span>
-              <p className="text-base font-bold text-orange-900">
-                Valores (Todos obrigatórios) *
-              </p>
+              <p className="text-base font-bold text-orange-900">Valores (Todos obrigatórios) *</p>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
@@ -316,7 +302,6 @@ export function VehicleFormModal({
             </div>
           </div>
 
-          {/* Botões */}
           <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
             <button
               type="button"

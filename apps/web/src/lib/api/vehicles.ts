@@ -13,6 +13,9 @@ export type Vehicle = {
   quilometragem?: number;
   renavam?: string;
   chassi?: string;
+  valorDiaria: number;
+  valorSemanal: number;
+  valorMensal: number;
   createdAt?: string;
   updatedAt?: string;
 };

@@ -1,0 +1,21 @@
+Legend: production dependency, optional only, dev only
+
+mag-system-webapp C:\Users\adair\PycharmProject\MAG-system-webapp (PRIVATE)
+
+dependencies:
+@prisma/client 5.22.0
+
+devDependencies:
+@commitlint/cli 20.3.0
+@commitlint/config-conventional 20.3.0
+@typescript-eslint/eslint-plugin 8.51.0
+@typescript-eslint/parser 8.51.0
+eslint 8.57.1
+eslint-config-prettier 9.1.2
+eslint-import-resolver-typescript 4.4.4
+eslint-plugin-import 2.32.0
+eslint-plugin-unused-imports 4.3.0
+husky 9.1.7
+lint-staged 16.2.7
+prettier 3.7.4
+prisma 5.22.0

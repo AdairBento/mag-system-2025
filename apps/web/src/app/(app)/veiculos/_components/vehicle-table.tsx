@@ -54,9 +54,7 @@ export function VehicleTable({ items, onEdit, onDelete }: Props) {
                     {v.status}
                   </span>
                 </td>
-                <td className="px-3 py-2">
-                  {v.quilometragem?.toLocaleString("pt-BR") ?? "-"}
-                </td>
+                <td className="px-3 py-2">{v.quilometragem?.toLocaleString("pt-BR") ?? "-"}</td>
                 <td className="px-3 py-2 text-right">
                   <div className="flex justify-end gap-2">
                     <button
