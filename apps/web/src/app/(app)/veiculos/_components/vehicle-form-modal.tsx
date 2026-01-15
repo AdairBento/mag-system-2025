@@ -97,30 +97,39 @@ export function VehicleFormModal({
 
   if (!isOpen) return null;
 
+  const inputClass =
+    "w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <h2 className="text-2xl font-bold text-gray-900">
             {initialData ? "Editar Veículo" : "Novo Veículo"}
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-200 rounded-lg"
+          >
             <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="grid grid-cols-2 gap-4">
             {/* Placa */}
             <div>
-              <label className="block text-sm font-medium mb-1">Placa *</label>
+              <label className={labelClass}>Placa *</label>
               <input
                 type="text"
                 value={formData.placa}
                 onChange={(e) =>
                   setFormData({ ...formData, placa: e.target.value.toUpperCase() })
                 }
-                className="w-full border rounded px-3 py-2"
+                className={inputClass}
                 placeholder="ABC-1234"
                 maxLength={8}
                 required
@@ -129,12 +138,12 @@ export function VehicleFormModal({
 
             {/* Marca */}
             <div>
-              <label className="block text-sm font-medium mb-1">Marca *</label>
+              <label className={labelClass}>Marca *</label>
               <input
                 type="text"
                 value={formData.marca}
                 onChange={(e) => setFormData({ ...formData, marca: e.target.value })}
-                className="w-full border rounded px-3 py-2"
+                className={inputClass}
                 placeholder="Ex: Toyota, Volkswagen"
                 required
               />
@@ -142,12 +151,12 @@ export function VehicleFormModal({
 
             {/* Modelo */}
             <div>
-              <label className="block text-sm font-medium mb-1">Modelo *</label>
+              <label className={labelClass}>Modelo *</label>
               <input
                 type="text"
                 value={formData.modelo}
                 onChange={(e) => setFormData({ ...formData, modelo: e.target.value })}
-                className="w-full border rounded px-3 py-2"
+                className={inputClass}
                 placeholder="Ex: Corolla, Gol"
                 required
               />
@@ -155,12 +164,12 @@ export function VehicleFormModal({
 
             {/* Ano */}
             <div>
-              <label className="block text-sm font-medium mb-1">Ano *</label>
+              <label className={labelClass}>Ano *</label>
               <input
                 type="number"
                 value={formData.ano}
                 onChange={(e) => setFormData({ ...formData, ano: Number(e.target.value) })}
-                className="w-full border rounded px-3 py-2"
+                className={inputClass}
                 min="1900"
                 max={new Date().getFullYear() + 1}
                 required
@@ -169,11 +178,11 @@ export function VehicleFormModal({
 
             {/* Cor */}
             <div>
-              <label className="block text-sm font-medium mb-1">Cor</label>
+              <label className={labelClass}>Cor</label>
               <select
                 value={formData.cor}
                 onChange={(e) => setFormData({ ...formData, cor: e.target.value })}
-                className="w-full border rounded px-3 py-2"
+                className={inputClass}
               >
                 <option value="">Selecione...</option>
                 {CAR_COLORS.map((color) => (
@@ -186,14 +195,14 @@ export function VehicleFormModal({
 
             {/* Quilometragem */}
             <div>
-              <label className="block text-sm font-medium mb-1">Quilometragem (km) *</label>
+              <label className={labelClass}>Quilometragem (km) *</label>
               <input
                 type="number"
                 value={formData.quilometragem}
                 onChange={(e) =>
                   setFormData({ ...formData, quilometragem: Number(e.target.value) })
                 }
-                className="w-full border rounded px-3 py-2"
+                className={inputClass}
                 min="0"
                 required
               />
@@ -201,12 +210,12 @@ export function VehicleFormModal({
 
             {/* Renavam */}
             <div>
-              <label className="block text-sm font-medium mb-1">RENAVAM</label>
+              <label className={labelClass}>RENAVAM</label>
               <input
                 type="text"
                 value={formData.renavam}
                 onChange={(e) => setFormData({ ...formData, renavam: e.target.value })}
-                className="w-full border rounded px-3 py-2"
+                className={inputClass}
                 placeholder="00000000000"
                 maxLength={11}
               />
@@ -214,14 +223,14 @@ export function VehicleFormModal({
 
             {/* Chassi */}
             <div>
-              <label className="block text-sm font-medium mb-1">CHASSI</label>
+              <label className={labelClass}>CHASSI</label>
               <input
                 type="text"
                 value={formData.chassi}
                 onChange={(e) =>
                   setFormData({ ...formData, chassi: e.target.value.toUpperCase() })
                 }
-                className="w-full border rounded px-3 py-2"
+                className={inputClass}
                 placeholder="9BWZZZ377VT004251"
                 maxLength={17}
               />
@@ -229,11 +238,11 @@ export function VehicleFormModal({
 
             {/* Status */}
             <div className="col-span-2">
-              <label className="block text-sm font-medium mb-1">Status *</label>
+              <label className={labelClass}>Status *</label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full border rounded px-3 py-2"
+                className={inputClass}
                 required
               >
                 <option value="DISPONIVEL">Disponível</option>
@@ -244,21 +253,26 @@ export function VehicleFormModal({
             </div>
           </div>
 
-          {/* Seção de Valores */}
-          <div className="bg-orange-50 p-4 rounded border border-orange-200">
-            <p className="text-sm font-medium mb-3 flex items-center gap-2 text-orange-900">
-              🔥 Valores (Todos obrigatórios) *
-            </p>
+          {/* Seção de Valores - Fundo Laranja Vibrante */}
+          <div className="bg-gradient-to-br from-orange-100 to-orange-50 border-2 border-orange-300 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">🔥</span>
+              <p className="text-base font-bold text-orange-900">
+                Valores (Todos obrigatórios) *
+              </p>
+            </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Diária (R$) *</label>
+                <label className="block text-sm font-semibold text-orange-900 mb-1.5">
+                  Diária (R$) *
+                </label>
                 <input
                   type="number"
                   value={formData.valorDiaria}
                   onChange={(e) =>
                     setFormData({ ...formData, valorDiaria: Number(e.target.value) })
                   }
-                  className="w-full border rounded px-3 py-2"
+                  className="w-full border-2 border-orange-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all bg-white"
                   min="0"
                   step="0.01"
                   placeholder="150.00"
@@ -266,14 +280,16 @@ export function VehicleFormModal({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Semanal (R$) *</label>
+                <label className="block text-sm font-semibold text-orange-900 mb-1.5">
+                  Semanal (R$) *
+                </label>
                 <input
                   type="number"
                   value={formData.valorSemanal}
                   onChange={(e) =>
                     setFormData({ ...formData, valorSemanal: Number(e.target.value) })
                   }
-                  className="w-full border rounded px-3 py-2"
+                  className="w-full border-2 border-orange-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all bg-white"
                   min="0"
                   step="0.01"
                   placeholder="900.00"
@@ -281,14 +297,16 @@ export function VehicleFormModal({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Mensal (R$) *</label>
+                <label className="block text-sm font-semibold text-orange-900 mb-1.5">
+                  Mensal (R$) *
+                </label>
                 <input
                   type="number"
                   value={formData.valorMensal}
                   onChange={(e) =>
                     setFormData({ ...formData, valorMensal: Number(e.target.value) })
                   }
-                  className="w-full border rounded px-3 py-2"
+                  className="w-full border-2 border-orange-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all bg-white"
                   min="0"
                   step="0.01"
                   placeholder="3000.00"
@@ -299,17 +317,17 @@ export function VehicleFormModal({
           </div>
 
           {/* Botões */}
-          <div className="flex gap-2 justify-end pt-4">
+          <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded hover:bg-gray-50"
+              className="px-6 py-2.5 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+              className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 font-medium shadow-lg hover:shadow-xl transition-all"
             >
               Salvar
             </button>
