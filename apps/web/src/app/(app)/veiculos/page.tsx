@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Search, Plus, Edit, Trash2, Car, Filter } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Car, Filter, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import { VehicleFormModal } from "./_components";
 import {
   getVehicles,
@@ -45,7 +46,11 @@ export default function VeiculosPage() {
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteVehicle(id),
     onSuccess: () => {
+      toast.success("✅ Veículo excluído com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+    },
+    onError: () => {
+      toast.error("❌ Erro ao excluir veículo");
     },
   });
 
@@ -57,8 +62,8 @@ export default function VeiculosPage() {
     if (!vehicle) return;
 
     if (vehicle.status === "LOCADO") {
-      alert(
-        "❌ Este veículo está LOCADO e não pode ser excluído!\n\nFinalize a locação antes de excluir."
+      toast.error(
+        "❌ Este veículo está LOCADO e não pode ser excluído! Finalize a locação antes."
       );
       return;
     }
@@ -72,11 +77,7 @@ export default function VeiculosPage() {
 
     if (!confirm("Tem certeza que deseja deletar este veículo?")) return;
 
-    try {
-      await deleteMut.mutateAsync(id);
-    } catch (error) {
-      console.error(error);
-    }
+    await deleteMut.mutateAsync(id);
   };
 
   const filteredVehicles = vehicles.filter((vehicle: Vehicle) => {
@@ -106,21 +107,25 @@ export default function VeiculosPage() {
     try {
       if (data.id) {
         await updateVehicle(data.id, data);
+        toast.success("✅ Veículo atualizado com sucesso!");
       } else {
         await createVehicle(data);
+        toast.success("✅ Veículo cadastrado com sucesso!");
       }
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       setIsModalOpen(false);
       setSelectedVehicle(null);
     } catch (error: any) {
+      toast.error("❌ Erro ao salvar veículo");
       console.error(error);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-teal-600 border-t-transparent"></div>
+        <p className="text-gray-600 font-medium">Carregando veículos...</p>
       </div>
     );
   }
@@ -138,64 +143,66 @@ export default function VeiculosPage() {
             setSelectedVehicle(null);
             setIsModalOpen(true);
           }}
-          className="inline-flex items-center gap-2 rounded-md bg-teal-600 text-white px-4 py-2 hover:bg-teal-700"
+          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 text-white px-5 py-2.5 hover:bg-teal-700 font-medium shadow-lg hover:shadow-xl transition-all"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           Novo Veículo
         </button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-sm text-gray-600 font-medium">Total</p>
+              <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
             </div>
-            <Car className="w-10 h-10 text-gray-400" />
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Disponíveis</p>
-              <p className="text-2xl font-bold text-green-600">{stats.disponivel}</p>
-            </div>
-            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-              <Car className="w-6 h-6 text-green-600" />
+            <div className="p-3 bg-gray-100 rounded-full">
+              <Car className="w-7 h-7 text-gray-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Locados</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.locado}</p>
+              <p className="text-sm text-gray-600 font-medium">Disponíveis</p>
+              <p className="text-3xl font-bold text-green-600 mt-1">{stats.disponivel}</p>
             </div>
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <Car className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-green-100 rounded-full">
+              <Car className="w-7 h-7 text-green-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Manutenção</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.manutencao}</p>
+              <p className="text-sm text-gray-600 font-medium">Locados</p>
+              <p className="text-3xl font-bold text-blue-600 mt-1">{stats.locado}</p>
             </div>
-            <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-              <Car className="w-6 h-6 text-yellow-600" />
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Car className="w-7 h-7 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 font-medium">Manutenção</p>
+              <p className="text-3xl font-bold text-yellow-600 mt-1">{stats.manutencao}</p>
+            </div>
+            <div className="p-3 bg-yellow-100 rounded-full">
+              <Car className="w-7 h-7 text-yellow-600" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -204,7 +211,7 @@ export default function VeiculosPage() {
               placeholder="Buscar por placa, marca ou modelo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all"
             />
           </div>
 
@@ -213,7 +220,7 @@ export default function VeiculosPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all"
             >
               <option value="ALL">Todos os Status</option>
               <option value="DISPONIVEL">Disponível</option>
@@ -225,108 +232,140 @@ export default function VeiculosPage() {
         </div>
       </div>
 
+      {/* Erro Backend */}
       {isError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          Erro ao carregar veículos.
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold text-red-800">Erro ao carregar veículos</p>
+            <p className="text-sm text-red-700 mt-1">
+              Verifique se o backend está rodando ou se os endpoints estão configurados.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Estado Vazio */}
+      {!isError && vehicles.length === 0 && (
+        <div className="bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-300 p-12 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+            <Car className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Nenhum veículo cadastrado
+          </h3>
+          <p className="text-gray-600 mb-6">Comece adicionando seu primeiro veículo à frota!</p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 text-white px-5 py-2.5 hover:bg-teal-700 font-medium shadow-lg hover:shadow-xl transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            Adicionar Primeiro Veículo
+          </button>
         </div>
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Veículo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Placa
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  KM
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedVehicles.length === 0 ? (
+      {vehicles.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                    Nenhum veículo encontrado
-                  </td>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Veículo
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Placa
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    KM
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Ações
+                  </th>
                 </tr>
-              ) : (
-                paginatedVehicles.map((vehicle: Vehicle) => (
-                  <tr key={vehicle.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-teal-100 rounded-full flex items-center justify-center">
-                          <Car className="h-6 w-6 text-teal-600" />
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {vehicle.marca} {vehicle.modelo}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {vehicle.ano} • {vehicle.cor || "Sem cor"}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-mono font-medium text-gray-900">
-                        {vehicle.placa}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {vehicle.quilometragem?.toLocaleString("pt-BR") || "0"} km
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          statusColors[vehicle.status as keyof typeof statusColors]
-                        }`}
-                      >
-                        {statusLabels[vehicle.status as keyof typeof statusLabels]}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedVehicle(vehicle);
-                            setIsModalOpen(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(vehicle.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {paginatedVehicles.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center">
+                      <p className="text-gray-500 font-medium">Nenhum veículo encontrado</p>
+                      <p className="text-sm text-gray-400 mt-1">Tente ajustar os filtros</p>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  paginatedVehicles.map((vehicle: Vehicle) => (
+                    <tr key={vehicle.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-11 w-11 bg-teal-100 rounded-full flex items-center justify-center">
+                            <Car className="h-6 w-6 text-teal-600" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-semibold text-gray-900">
+                              {vehicle.marca} {vehicle.modelo}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {vehicle.ano} • {vehicle.cor || "Sem cor"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-mono font-bold text-gray-900">
+                          {vehicle.placa}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {vehicle.quilometragem?.toLocaleString("pt-BR") || "0"} km
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            statusColors[vehicle.status as keyof typeof statusColors]
+                          }`}
+                        >
+                          {statusLabels[vehicle.status as keyof typeof statusLabels]}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => {
+                              setSelectedVehicle(vehicle);
+                              setIsModalOpen(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-800 transition-colors"
+                            title="Editar"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(vehicle.id)}
+                            className="text-red-600 hover:text-red-800 transition-colors"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Paginação */}
       {filteredVehicles.length > itemsPerPage && (
-        <div className="flex items-center justify-between px-6 py-4 bg-white border-t">
-          <div className="text-sm text-gray-600">
+        <div className="flex items-center justify-between px-6 py-4 bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="text-sm text-gray-600 font-medium">
             Mostrando {startIndex + 1}-{Math.min(endIndex, filteredVehicles.length)} de{" "}
             {filteredVehicles.length} veículos
           </div>
@@ -334,7 +373,7 @@ export default function VeiculosPage() {
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 rounded border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
             >
               ←
             </button>
@@ -342,8 +381,10 @@ export default function VeiculosPage() {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`px-3 py-1 rounded ${
-                  currentPage === page ? "bg-teal-600 text-white" : "border hover:bg-gray-50"
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  currentPage === page
+                    ? "bg-teal-600 text-white shadow-lg"
+                    : "border border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 {page}
@@ -352,7 +393,7 @@ export default function VeiculosPage() {
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
             >
               →
             </button>
