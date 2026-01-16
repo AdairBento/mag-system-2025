@@ -1,4 +1,4 @@
-﻿name: CI - Auditoria Completa
+name: CI - Auditoria Completa
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9
+          version: 10
 
       - name: 🟢 Setup Node
         uses: actions/setup-node@v4
