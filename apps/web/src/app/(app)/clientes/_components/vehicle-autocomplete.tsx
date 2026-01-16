@@ -121,7 +121,7 @@ export function VehicleAutocomplete({
         selectedBrand.codigo,
         selectedModel.codigo,
         year.codigo,
-        vehicleType
+        vehicleType,
       );
 
       if (details) {

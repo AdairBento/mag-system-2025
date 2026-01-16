@@ -51,7 +51,9 @@ export async function getBrands(type: VehicleType = "carros"): Promise<Brand[]> 
 
 export async function getModels(brandCode: string, type: VehicleType = "carros"): Promise<Model[]> {
   try {
-    const response = await fetch(`${FIPE_API}/${type}/marcas/${brandCode}/modelos`, { cache: "no-store" });
+    const response = await fetch(`${FIPE_API}/${type}/marcas/${brandCode}/modelos`, {
+      cache: "no-store",
+    });
     if (!response.ok) throw new Error("Erro ao buscar modelos");
     const data = await safeJson<{ modelos?: Model[] }>(response);
     return data.modelos || [];
@@ -64,10 +66,13 @@ export async function getModels(brandCode: string, type: VehicleType = "carros")
 export async function getYears(
   brandCode: string,
   modelCode: number,
-  type: VehicleType = "carros"
+  type: VehicleType = "carros",
 ): Promise<ModelYear[]> {
   try {
-    const response = await fetch(`${FIPE_API}/${type}/marcas/${brandCode}/modelos/${modelCode}/anos`, { cache: "no-store" });
+    const response = await fetch(
+      `${FIPE_API}/${type}/marcas/${brandCode}/modelos/${modelCode}/anos`,
+      { cache: "no-store" },
+    );
     if (!response.ok) throw new Error("Erro ao buscar anos");
     return await safeJson<ModelYear[]>(response);
   } catch (error) {
@@ -80,10 +85,13 @@ export async function getVehicleDetails(
   brandCode: string,
   modelCode: number,
   yearCode: string,
-  type: VehicleType = "carros"
+  type: VehicleType = "carros",
 ): Promise<VehicleDetails | null> {
   try {
-    const response = await fetch(`${FIPE_API}/${type}/marcas/${brandCode}/modelos/${modelCode}/anos/${yearCode}`, { cache: "no-store" });
+    const response = await fetch(
+      `${FIPE_API}/${type}/marcas/${brandCode}/modelos/${modelCode}/anos/${yearCode}`,
+      { cache: "no-store" },
+    );
     if (!response.ok) throw new Error("Erro ao buscar detalhes");
     return await safeJson<VehicleDetails>(response);
   } catch (error) {
