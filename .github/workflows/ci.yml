@@ -1,0 +1,72 @@
+﻿name: CI - Auditoria Completa
+
+on:
+  push:
+    branches: [main, develop, feat/*]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  audit:
+    name: 🔍 Auditoria Completa
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mag_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: 🟢 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: 📚 Install
+        run: pnpm install --frozen-lockfile
+
+      - name: 🗄️ Prisma Generate
+        run: pnpm --filter @mag/database db:generate
+
+      - name: 📝 Format Check
+        run: pnpm run audit:format
+
+      - name: 🔍 Lint
+        run: pnpm run audit:lint
+
+      - name: 📘 TypeCheck
+        run: pnpm run audit:types
+
+      - name: 🏗️ Build
+        run: pnpm run audit:build
+
+      - name: 🧪 Tests
+        run: pnpm run audit:test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mag_test
+
+      - name: 🗄️ Validate Schema
+        run: pnpm --filter @mag/database exec prisma validate --schema prisma/schema.prisma
+
+      - name: 🔒 Security
+        run: pnpm audit --prod --audit-level=moderate
+        continue-on-error: true

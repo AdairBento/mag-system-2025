@@ -18,7 +18,19 @@
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:push": "prisma db push"
+    "prisma:push": "prisma db push",
+    "audit:all": "pnpm run audit:format && pnpm run audit:lint && pnpm run audit:types && pnpm run audit:build && pnpm run audit:test && pnpm run audit:db && pnpm run audit:security",
+    "audit:format": "prettier -c .",
+    "audit:lint": "pnpm -r lint",
+    "audit:types": "pnpm -r typecheck",
+    "audit:build": "pnpm -r build",
+    "audit:test": "pnpm --filter @mag/api test",
+    "audit:db": "pnpm --filter @mag/database db:generate && pnpm --filter @mag/database run prisma:validate",
+    "audit:db:full": "pwsh -ExecutionPolicy Bypass -File scripts/audit-db-full.ps1",
+    "audit:security": "pnpm audit --prod --audit-level=moderate",
+    "audit:secrets": "pwsh -ExecutionPolicy Bypass -File scripts/check-secrets.ps1",
+    "audit:licenses": "pnpm licenses list --prod",
+    "audit:ci": "pnpm install --frozen-lockfile && pnpm run audit:all && pnpm run audit:db:full && pnpm run audit:secrets"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.0",

@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "@mag/database",
   "version": "1.0.0",
   "private": true,
@@ -17,6 +17,7 @@
     "prisma:generate": "pnpm run db:generate",
     "prisma:migrate": "pnpm run db:migrate",
     "prisma:studio": "pnpm run db:studio",
+    "prisma:validate": "prisma validate --schema prisma/schema.prisma",
     "lint:fix": "eslint src --fix"
   },
   "dependencies": {

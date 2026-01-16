@@ -1,9 +1,9 @@
-node_modules
-.next
+﻿node_modules
 dist
-build
+.next
+.backups
+_BACKUPS_*
+*.log
+.env
+.env.local
 coverage
-pnpm-lock.yaml
-**/*.bak.*
-.husky
-.prisma

@@ -1,0 +1,2 @@
+# Ignore false positives in documentation
+apps/api/README.md:generic-api-key:5

@@ -1,4 +1,5 @@
-services:
+﻿services:
+  # Banco de desenvolvimento (porta 5432)
   db:
     image: postgres:15
     container_name: mag-postgres
@@ -11,6 +12,30 @@ services:
       POSTGRES_DB: mag_rental
     volumes:
       - mag_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mag_user -d mag_rental"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Banco de teste (porta 5433) - SEMPRE LIMPO
+  db-test:
+    image: postgres:15
+    container_name: mag-postgres-test
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: mag_user
+      POSTGRES_PASSWORD: mag_password
+      POSTGRES_DB: mag_rental_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mag_user -d mag_rental_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mag_db_data:
