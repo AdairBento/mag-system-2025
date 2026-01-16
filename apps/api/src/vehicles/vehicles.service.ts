@@ -25,7 +25,7 @@ export class VehiclesService {
     page: number = 1,
     limit: number = 10,
     search?: string,
-    status?: VehicleStatus,
+    status?: VehicleStatus | 'ALL',
   ) {
     const skip = (page - 1) * limit;
 
