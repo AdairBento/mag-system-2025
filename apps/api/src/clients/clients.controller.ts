@@ -1,24 +1,48 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { ClientsService } from './clients.service';
+import { CreateClientDto } from './dto/create-client.dto';
+import { UpdateClientDto } from './dto/update-client.dto';
+import { FilterClientDto } from './dto/filter-client.dto';
 
 @Controller('clients')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  create(@Body() createClientDto: CreateClientDto) {
+    return this.clientsService.create(createClientDto);
+  }
+
   @Get()
-  async findAll(
-    @Query('page') page = '1',
-    @Query('limit') limit = '10',
-    @Query('search') search?: string,
-    @Query('type') type?: string,
-    @Query('status') status?: string,
-  ) {
-    return this.clientsService.findAll({
-      page: Number(page) || 1,
-      limit: Number(limit) || 10,
-      search,
-      type,
-      status,
-    });
+  findAll(@Query() filters: FilterClientDto) {
+    return this.clientsService.findAll(filters);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.clientsService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateClientDto: UpdateClientDto) {
+    return this.clientsService.update(id, updateClientDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  remove(@Param('id') id: string) {
+    return this.clientsService.remove(id);
   }
 }
