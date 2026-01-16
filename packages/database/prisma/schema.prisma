@@ -52,3 +52,38 @@ enum VehicleStatus {
   MANUTENCAO
   INATIVO
 }
+
+model Client {
+  id           String       @id @default(uuid())
+  type         ClientType
+  status       ClientStatus @default(ATIVO)
+  
+  // Pessoa Física
+  name         String?
+  cpf          String?      @unique
+  
+  // Pessoa Jurídica
+  razaoSocial  String?
+  cnpj         String?      @unique
+  nomeFantasia String?
+  
+  // Comum
+  cellphone    String?
+  email        String?
+  
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@map("clients")
+}
+
+enum ClientType {
+  PF
+  PJ
+}
+
+enum ClientStatus {
+  ATIVO
+  INATIVO
+  BLOQUEADO
+}
