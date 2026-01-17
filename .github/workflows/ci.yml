@@ -27,6 +27,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build shared packages
+        run: |
+          pnpm --filter @mag/shared build
+          pnpm --filter @mag/database build
+
       - name: Run typecheck
         run: |
           pnpm --filter @mag/api typecheck
@@ -55,6 +60,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: |
+          pnpm --filter @mag/shared build
+          pnpm --filter @mag/database build
 
       - name: Build API
         run: pnpm --filter @mag/api build
