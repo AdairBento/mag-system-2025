@@ -1,67 +1,48 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger as NestLogger, ValidationPipe } from '@nestjs/common';
-import { Logger } from 'nestjs-pino';
-
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { requestIdMiddleware } from './common/request-id.middleware';
-import { ApiExceptionFilter } from './common/api-exception.filter';
-import { ApiResponseInterceptor } from './common/api-response.interceptor';
-
-type CorsOrigin = string | RegExp;
-
-function parsePort(value: string | undefined, fallback = 3001): number {
-  const n = Number(value);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
-}
-
-function parseCorsOrigins(value?: string): CorsOrigin[] | '*' {
-  if (!value) return ['http://localhost:3000'];
-
-  const v = value.trim();
-  if (v === '*') return '*';
-
-  return v
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule);
 
-  // use pino logger (already provided by your LoggerModule)
-  app.useLogger(app.get(Logger));
-
-  // request id middleware first
-  app.use(requestIdMiddleware);
-
-  const port = parsePort(process.env.PORT, 3001);
-  const corsOrigins = parseCorsOrigins(process.env.CORS_ORIGINS);
-
+  // Configurar CORS
   app.enableCors({
-    origin: corsOrigins,
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
   });
 
+  // Configurar Validation Pipe global
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      transform: true,
       forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
-  app.useGlobalFilters(new ApiExceptionFilter());
-  app.useGlobalInterceptors(new ApiResponseInterceptor());
+  // Configurar Swagger
+  const config = new DocumentBuilder()
+    .setTitle('MAG Locação API')
+    .setDescription('Sistema de Gestão de Locação de Veículos')
+    .setVersion('1.0')
+    .addTag('health', 'Health Check')
+    .addTag('drivers', 'Gerenciamento de Motoristas')
+    .addTag('clients', 'Gerenciamento de Clientes')
+    .addTag('vehicles', 'Gerenciamento de Veículos')
+    .build();
 
-  await app.listen(port, '0.0.0.0');
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
-  // log via Nest logger (consistent)
-  const log = new NestLogger('Bootstrap');
-  log.log(`API listening on http://localhost:${port}`);
-  log.log(
-    `CORS origins: ${corsOrigins === '*' ? '*' : corsOrigins.join(', ')}`,
+  const port = process.env.PORT || 3001;
+  await app.listen(port);
+
+  console.log(`✅ API listening on http://localhost:${port}`);
+  console.log(
+    `🌐 CORS origins: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`,
   );
+  console.log(`📚 Swagger docs: http://localhost:${port}/api`);
 }
 
 bootstrap();

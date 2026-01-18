@@ -1,0 +1,126 @@
+{
+  "common": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "search": "Pesquisar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "actions": "Ações",
+    "loading": "Carregando...",
+    "noData": "Nenhum dado disponível",
+    "error": "Erro",
+    "success": "Sucesso",
+    "confirm": "Confirmar",
+    "back": "Voltar"
+  },
+  "clients": {
+    "title": "Clientes",
+    "list": "Lista de Clientes",
+    "create": "Novo Cliente",
+    "edit": "Editar Cliente",
+    "delete": "Excluir Cliente",
+    "confirmDelete": "Tem certeza que deseja excluir este cliente?",
+    "fields": {
+      "name": "Nome",
+      "cpf": "CPF",
+      "rg": "RG",
+      "phone": "Telefone",
+      "email": "E-mail",
+      "birthDate": "Data de Nascimento",
+      "zipCode": "CEP",
+      "street": "Logradouro",
+      "number": "Número",
+      "complement": "Complemento",
+      "neighborhood": "Bairro",
+      "city": "Cidade",
+      "state": "Estado"
+    },
+    "placeholders": {
+      "name": "Digite o nome completo",
+      "cpf": "000.000.000-00",
+      "phone": "(00) 00000-0000",
+      "email": "exemplo@email.com",
+      "zipCode": "00000-000"
+    }
+  },
+  "vehicles": {
+    "title": "Veículos",
+    "list": "Lista de Veículos",
+    "create": "Novo Veículo",
+    "edit": "Editar Veículo",
+    "delete": "Excluir Veículo",
+    "confirmDelete": "Tem certeza que deseja excluir este veículo?",
+    "fields": {
+      "plate": "Placa",
+      "brand": "Marca",
+      "model": "Modelo",
+      "year": "Ano",
+      "color": "Cor",
+      "mileage": "Quilometragem",
+      "renavam": "RENAVAM",
+      "chassis": "Chassi",
+      "status": "Status"
+    },
+    "status": {
+      "available": "Disponível",
+      "rented": "Alugado",
+      "maintenance": "Em Manutenção",
+      "unavailable": "Indisponível"
+    }
+  },
+  "drivers": {
+    "title": "Motoristas",
+    "list": "Lista de Motoristas",
+    "create": "Novo Motorista",
+    "edit": "Editar Motorista",
+    "delete": "Excluir Motorista",
+    "confirmDelete": "Tem certeza que deseja excluir este motorista?",
+    "fields": {
+      "name": "Nome",
+      "cpf": "CPF",
+      "cnh": "CNH",
+      "cnhCategory": "Categoria CNH",
+      "cnhExpiry": "Validade CNH",
+      "phone": "Telefone",
+      "email": "E-mail"
+    }
+  },
+  "validation": {
+    "required": "Campo obrigatório",
+    "invalidEmail": "E-mail inválido",
+    "invalidCPF": "CPF inválido",
+    "invalidCNH": "CNH inválida",
+    "invalidPhone": "Telefone inválido",
+    "invalidZipCode": "CEP inválido",
+    "minLength": "Mínimo de {min} caracteres",
+    "maxLength": "Máximo de {max} caracteres",
+    "minValue": "Valor mínimo: {min}",
+    "maxValue": "Valor máximo: {max}",
+    "invalidDate": "Data inválida",
+    "futureDate": "Data não pode ser futura",
+    "pastDate": "Data não pode ser passada"
+  },
+  "messages": {
+    "saveSuccess": "Salvo com sucesso!",
+    "deleteSuccess": "Excluído com sucesso!",
+    "updateSuccess": "Atualizado com sucesso!",
+    "createSuccess": "Criado com sucesso!",
+    "errorOccurred": "Ocorreu um erro. Tente novamente.",
+    "confirmAction": "Tem certeza que deseja realizar esta ação?",
+    "noChanges": "Nenhuma alteração foi feita",
+    "unsavedChanges": "Você tem alterações não salvas. Deseja continuar?"
+  },
+  "navigation": {
+    "home": "Início",
+    "clients": "Clientes",
+    "vehicles": "Veículos",
+    "drivers": "Motoristas",
+    "rentals": "Locações",
+    "reports": "Relatórios",
+    "settings": "Configurações",
+    "logout": "Sair"
+  }
+}

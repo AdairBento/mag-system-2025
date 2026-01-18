@@ -71,3 +71,6 @@ backups/
 .env.production.local
 .env.test
 !.env.example
+
+# Backup files
+*.bak

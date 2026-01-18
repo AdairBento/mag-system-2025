@@ -1,0 +1,22 @@
+Backup Manual (quando quiser)
+powershell
+# Execute este script sempre que quiser fazer backup
+C:\Scripts\backup-mag-system.ps1
+Trabalho Diário com Git
+powershell
+# Começar o dia
+git checkout development
+git pull origin development
+
+# Trabalhar normalmente...
+
+# Salvar mudanças
+git add .
+git commit -m "feat(modulo): descrição"
+git push origin development
+Antes de Mudanças Arriscadas
+powershell
+# Criar snapshot de emergência
+git checkout -b backup-snapshot-$(Get-Date -Format "yyyyMMdd-HHmm")
+git push origin backup-snapshot-$(Get-Date -Format "yyyyMMdd-HHmm")
+git checkout development
