@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
@@ -12,7 +12,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Configurar Validation Pipe global
+  // Configurar Validation Pipe global com logs detalhados
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -20,6 +20,26 @@ async function bootstrap() {
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,
+      },
+      exceptionFactory: (errors) => {
+        console.log('\n' + '='.repeat(80));
+        console.log('🚨 VALIDATION ERROR DETECTED');
+        console.log('='.repeat(80));
+        console.log('Raw errors:', JSON.stringify(errors, null, 2));
+        console.log('='.repeat(80) + '\n');
+        
+        const messages = errors.map((error) => {
+          const constraints = error.constraints
+            ? Object.values(error.constraints)
+            : ['Unknown error'];
+          return constraints;
+        }).flat();
+        
+        return new BadRequestException({
+          message: messages,
+          error: 'Bad Request',
+          statusCode: 400,
+        });
       },
     }),
   );
