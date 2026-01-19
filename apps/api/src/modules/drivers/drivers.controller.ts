@@ -100,6 +100,20 @@ export class DriversController {
     description: 'Include soft deleted drivers',
     type: Boolean,
   })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of results per page',
+    type: Number,
+    example: 10,
+  })
   findAll(@Query() filters: FilterDriverDto) {
     return this.driversService.findAll(filters);
   }
