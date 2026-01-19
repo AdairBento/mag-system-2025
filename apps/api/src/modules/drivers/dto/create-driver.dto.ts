@@ -1,12 +1,15 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
   IsString,
+  IsNotEmpty,
+  IsEmail,
+  IsOptional,
+  IsDateString,
+  IsEnum,
   IsUUID,
+  Length,
+  Matches,
 } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DriverStatus } from '@prisma/client';
 
 export class CreateDriverDto {
@@ -19,15 +22,49 @@ export class CreateDriverDto {
   name: string;
 
   @ApiProperty({
-    description: 'Driver CPF (Brazilian tax ID)',
-    example: '123.456.789-00',
+    description: 'CPF number (11 digits)',
+    example: '12345678900',
   })
   @IsString()
   @IsNotEmpty()
+  @Length(11, 11)
+  @Matches(/^\d{11}$/)
   cpf: string;
 
   @ApiPropertyOptional({
-    description: 'Driver email address',
+    description: 'RG number',
+    example: 'MG12345678',
+  })
+  @IsString()
+  @IsOptional()
+  rg?: string;
+
+  @ApiPropertyOptional({
+    description: 'Birth date (ISO 8601)',
+    example: '1990-01-15T00:00:00.000Z',
+  })
+  @IsDateString()
+  @IsOptional()
+  birthDate?: Date;
+
+  @ApiProperty({
+    description: 'Cell phone number',
+    example: '31999887766',
+  })
+  @IsString()
+  @IsNotEmpty()
+  cellphone: string;
+
+  @ApiPropertyOptional({
+    description: 'Landline phone number',
+    example: '3133334444',
+  })
+  @IsString()
+  @IsOptional()
+  telephone?: string;
+
+  @ApiPropertyOptional({
+    description: 'Email address',
     example: 'joao.silva@email.com',
   })
   @IsEmail()
@@ -35,66 +72,108 @@ export class CreateDriverDto {
   email?: string;
 
   @ApiPropertyOptional({
-    description: 'Driver phone number',
-    example: '(31) 3333-4444',
+    description: 'ZIP code',
+    example: '30130100',
   })
   @IsString()
   @IsOptional()
-  phone?: string;
+  zipCode?: string;
 
   @ApiPropertyOptional({
-    description: 'Driver cellphone number',
-    example: '(31) 99999-8888',
+    description: 'Street address',
+    example: 'Rua da Bahia',
   })
   @IsString()
   @IsOptional()
-  cellphone?: string;
+  street?: string;
 
   @ApiPropertyOptional({
-    description: 'Driver status',
-    enum: DriverStatus,
-    example: DriverStatus.ATIVO,
+    description: 'Address number',
+    example: '1234',
   })
-  @IsEnum(DriverStatus)
+  @IsString()
   @IsOptional()
-  status?: DriverStatus;
+  number?: string;
+
+  @ApiPropertyOptional({
+    description: 'Address complement',
+    example: 'Apto 501',
+  })
+  @IsString()
+  @IsOptional()
+  complement?: string;
+
+  @ApiPropertyOptional({
+    description: 'Neighborhood',
+    example: 'Centro',
+  })
+  @IsString()
+  @IsOptional()
+  neighborhood?: string;
+
+  @ApiPropertyOptional({
+    description: 'City',
+    example: 'Belo Horizonte',
+  })
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @ApiPropertyOptional({
+    description: 'State (UF)',
+    example: 'MG',
+  })
+  @IsString()
+  @IsOptional()
+  @Length(2, 2)
+  state?: string;
 
   @ApiProperty({
     description: 'Driver license number (CNH)',
-    example: '12345678901',
+    example: 'CNH12345678',
   })
   @IsString()
   @IsNotEmpty()
   licenseNumber: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Driver license category',
     example: 'AB',
   })
   @IsString()
-  @IsOptional()
-  licenseCategory?: string;
+  @IsNotEmpty()
+  licenseCategory: string;
 
-  @ApiPropertyOptional({
-    description: 'Driver license expiry date',
-    example: '2025-12-31T00:00:00.000Z',
+  @ApiProperty({
+    description: 'Driver license expiry date (ISO 8601)',
+    example: '2026-12-31T00:00:00.000Z',
   })
-  @IsOptional()
-  licenseExpiry?: Date;
+  @IsDateString()
+  @IsNotEmpty()
+  licenseExpiry: Date;
+
+  @ApiProperty({
+    description: 'Driver status',
+    enum: DriverStatus,
+    example: DriverStatus.ATIVO,
+  })
+  @IsEnum(DriverStatus)
+  @IsNotEmpty()
+  status: DriverStatus;
 
   @ApiPropertyOptional({
-    description: 'Client ID if driver is also a client',
+    description: 'Additional observations',
+    example: 'Motorista experiente',
+  })
+  @IsString()
+  @IsOptional()
+  observations?: string;
+
+  @ApiPropertyOptional({
+    description: 'Client ID (company)',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsUUID()
   @IsOptional()
   clientId?: string;
-
-  @ApiPropertyOptional({
-    description: 'User ID who created the driver',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsUUID()
-  @IsOptional()
-  createdBy?: string;
 }

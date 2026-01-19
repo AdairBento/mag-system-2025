@@ -24,4 +24,3 @@ import { DriversModule } from './modules/drivers/drivers.module';
   providers: [],
 })
 export class AppModule {}
-

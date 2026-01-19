@@ -139,7 +139,7 @@ export class DriversController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Soft delete a driver' })
   @ApiParam({
     name: 'id',
@@ -147,8 +147,9 @@ export class DriversController {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiResponse({
-    status: 204,
+    status: 200,
     description: 'Driver successfully soft deleted',
+    type: DriverEntity,
   })
   @ApiResponse({
     status: 404,
@@ -176,7 +177,7 @@ export class DriversController {
   })
   @ApiResponse({
     status: 409,
-    description: 'Driver is not deleted',
+    description: 'Driver is not deleted or license conflict',
   })
   restore(@Param('id') id: string) {
     return this.driversService.restore(id);

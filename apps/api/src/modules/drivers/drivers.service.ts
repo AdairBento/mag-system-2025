@@ -1,107 +1,139 @@
 import {
-  ConflictException,
   Injectable,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { FilterDriverDto } from './dto/filter-driver.dto';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class DriversService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createDriverDto: CreateDriverDto, userId?: string) {
-    // Check if driver already exists
+  async create(createDriverDto: CreateDriverDto) {
+    // Verificar se já existe motorista com mesma CNH ativo
     const existingDriver = await this.prisma.driver.findFirst({
       where: {
         licenseNumber: createDriverDto.licenseNumber,
-        deletedAt: null,
+        isActive: true,
       },
     });
 
     if (existingDriver) {
       throw new ConflictException(
-        'Driver with license number ' +
-          createDriverDto.licenseNumber +
-          ' already exists',
+        `Driver with license number ${createDriverDto.licenseNumber} already exists`,
       );
     }
 
-    const { clientId, ...rest } = createDriverDto;
+    // Se clientId foi fornecido, verificar se cliente existe
+    if (createDriverDto.clientId) {
+      const client = await this.prisma.client.findUnique({
+        where: { id: createDriverDto.clientId },
+      });
+
+      if (!client) {
+        throw new NotFoundException(
+          `Client with ID ${createDriverDto.clientId} not found`,
+        );
+      }
+    }
 
     return this.prisma.driver.create({
-      data: clientId
-        ? {
-            ...rest,
-            licenseCategory: rest.licenseCategory || 'B',
-            licenseExpiry: rest.licenseExpiry || new Date(),
-            isActive: true,
-            createdBy: userId,
-            client: { connect: { id: clientId } },
-          }
-        : {
-            name: rest.name,
-            cpf: rest.cpf,
-            email: rest.email,
-            cellphone: rest.cellphone,
-            licenseNumber: rest.licenseNumber,
-            licenseCategory: rest.licenseCategory || 'B',
-            licenseExpiry: rest.licenseExpiry || new Date(),
-            status: rest.status,
-            isActive: true,
-            createdBy: userId,
-          },
+      data: {
+        name: createDriverDto.name,
+        cpf: createDriverDto.cpf,
+        rg: createDriverDto.rg,
+        birthDate: createDriverDto.birthDate,
+        cellphone: createDriverDto.cellphone,
+        telephone: createDriverDto.telephone,
+        email: createDriverDto.email,
+        zipCode: createDriverDto.zipCode,
+        street: createDriverDto.street,
+        number: createDriverDto.number,
+        complement: createDriverDto.complement,
+        neighborhood: createDriverDto.neighborhood,
+        city: createDriverDto.city,
+        state: createDriverDto.state,
+        licenseNumber: createDriverDto.licenseNumber,
+        licenseCategory: createDriverDto.licenseCategory,
+        licenseExpiry: createDriverDto.licenseExpiry,
+        status: createDriverDto.status,
+        observations: createDriverDto.observations,
+        clientId: createDriverDto.clientId,
+      },
     });
   }
 
-  async findAll(filters?: FilterDriverDto) {
-    const where: Prisma.DriverWhereInput = {};
+  async findAll(filters: FilterDriverDto) {
+    const where: any = {};
 
-    // Apply filters
-    if (filters?.name) {
-      where.name = { contains: filters.name, mode: 'insensitive' };
+    // Aplicar filtros
+    if (filters.name) {
+      where.name = {
+        contains: filters.name,
+        mode: 'insensitive',
+      };
     }
 
-    if (filters?.cpf) {
+    if (filters.cpf) {
       where.cpf = filters.cpf;
     }
 
-    if (filters?.licenseNumber) {
+    if (filters.licenseNumber) {
       where.licenseNumber = filters.licenseNumber;
     }
 
-    if (filters?.status) {
+    if (filters.status) {
       where.status = filters.status;
     }
 
-    if (filters?.clientId) {
+    if (filters.clientId) {
       where.clientId = filters.clientId;
     }
 
-    // Soft delete filter
-    if (!filters?.includeDeleted) {
-      where.deletedAt = null;
+    // Por padrão, não retorna deletados
+    if (!filters.includeDeleted) {
       where.isActive = true;
     }
 
     return this.prisma.driver.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        name: 'asc',
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
   }
 
   async findOne(id: string, includeDeleted = false) {
-    const where: Prisma.DriverWhereInput = { id };
+    const where: any = { id };
 
     if (!includeDeleted) {
-      where.deletedAt = null;
       where.isActive = true;
     }
 
-    const driver = await this.prisma.driver.findFirst({ where });
+    const driver = await this.prisma.driver.findFirst({
+      where,
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            cnpj: true,
+            cpf: true,
+          },
+        },
+      },
+    });
 
     if (!driver) {
       throw new NotFoundException(`Driver with ID ${id} not found`);
@@ -111,22 +143,40 @@ export class DriversService {
   }
 
   async update(id: string, updateDriverDto: UpdateDriverDto) {
-    // Check if driver exists and is not deleted
-    await this.findOne(id);
+    // Verificar se motorista existe e está ativo
+    const driver = await this.findOne(id);
 
-    // Check if license number is being changed and if it already exists
-    if (updateDriverDto.licenseNumber) {
+    // Se está atualizando a CNH, verificar duplicação
+    if (
+      updateDriverDto.licenseNumber &&
+      updateDriverDto.licenseNumber !== driver.licenseNumber
+    ) {
       const existingDriver = await this.prisma.driver.findFirst({
         where: {
           licenseNumber: updateDriverDto.licenseNumber,
-          id: { not: id },
-          deletedAt: null,
+          isActive: true,
+          NOT: {
+            id,
+          },
         },
       });
 
       if (existingDriver) {
         throw new ConflictException(
           `Driver with license number ${updateDriverDto.licenseNumber} already exists`,
+        );
+      }
+    }
+
+    // Se está atualizando clientId, verificar se cliente existe
+    if (updateDriverDto.clientId) {
+      const client = await this.prisma.client.findUnique({
+        where: { id: updateDriverDto.clientId },
+      });
+
+      if (!client) {
+        throw new NotFoundException(
+          `Client with ID ${updateDriverDto.clientId} not found`,
         );
       }
     }
@@ -138,42 +188,70 @@ export class DriversService {
   }
 
   async remove(id: string) {
-    // Check if driver exists and is not deleted
+    // Verificar se motorista existe e está ativo
     await this.findOne(id);
 
     // Soft delete
     return this.prisma.driver.update({
       where: { id },
       data: {
-        deletedAt: new Date(),
         isActive: false,
+        deletedAt: new Date(),
       },
     });
   }
 
   async restore(id: string) {
-    // Check if driver exists (including deleted)
-    const driver = await this.findOne(id, true);
+    // Buscar motorista deletado
+    const driver = await this.prisma.driver.findFirst({
+      where: {
+        id,
+        isActive: false,
+      },
+    });
 
-    if (!driver.deletedAt) {
-      throw new ConflictException(`Driver with ID ${id} is not deleted`);
+    if (!driver) {
+      throw new NotFoundException(`Deleted driver with ID ${id} not found`);
     }
 
-    // Restore driver
+    // Verificar se já existe outro motorista ativo com mesma CNH
+    const existingActiveDriver = await this.prisma.driver.findFirst({
+      where: {
+        licenseNumber: driver.licenseNumber,
+        isActive: true,
+        NOT: {
+          id,
+        },
+      },
+    });
+
+    if (existingActiveDriver) {
+      throw new ConflictException(
+        `Cannot restore: another active driver with license number ${driver.licenseNumber} already exists`,
+      );
+    }
+
+    // Restaurar
     return this.prisma.driver.update({
       where: { id },
       data: {
-        deletedAt: null,
         isActive: true,
+        deletedAt: null,
       },
     });
   }
 
   async forceDelete(id: string) {
-    // Check if driver exists (including deleted)
-    await this.findOne(id, true);
+    // Verificar se existe (pode estar deletado ou não)
+    const driver = await this.prisma.driver.findUnique({
+      where: { id },
+    });
 
-    // Permanent delete
+    if (!driver) {
+      throw new NotFoundException(`Driver with ID ${id} not found`);
+    }
+
+    // Exclusão permanente
     return this.prisma.driver.delete({
       where: { id },
     });
