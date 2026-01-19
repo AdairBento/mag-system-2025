@@ -15,8 +15,7 @@ export class VehiclesService {
 
   async create(createVehicleDto: CreateVehicleDto) {
     // Check if plate already exists
-    const existing = await this.prisma.vehicle.findUnique({
-      where: { plate: createVehicleDto.plate },
+    const existing = await this.prisma.vehicle.findFirst({ where: { plate: createVehicleDto.plate, deletedAt: null },
     });
 
     if (existing) {
@@ -58,9 +57,7 @@ export class VehiclesService {
       where.status = status;
     }
 
-    if (category) {
-      where.category = category;
-    }
+    // category removido - não existe no schema Vehicle
 
     if (search) {
       where.OR = [

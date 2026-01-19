@@ -1,13 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestException } from '@nestjs/common';
+import { DriverStatus } from '@prisma/client';
 import { DriversService } from './drivers.service';
 
 @Controller('drivers')
@@ -18,15 +10,13 @@ export class DriversController {
   async findAll(
     @Query('page') page = '1',
     @Query('limit') limit = '10',
-    @Query('search') search?: string,
     @Query('status') status?: string,
     @Query('clientId') clientId?: string,
   ) {
     return this.driversService.findAll({
-      page: Number(page) || 1,
-      limit: Number(limit) || 10,
-      search,
-      status,
+      // page: Number(page) || 1, // Removido - usar filterDto default
+      // limit removido - use perPage
+      status: status as DriverStatus | undefined,
       clientId,
     });
   }
@@ -42,7 +32,7 @@ export class DriversController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() data: any) {
+  async update(@Body() updateDriverDto: any) {
     return this.driversService.update(id, data);
   }
 
@@ -53,9 +43,8 @@ export class DriversController {
 
   @Post(':id/migrate')
   async migrate(
-    @Param('id') id: string,
-    @Body() data: { newClientId: string },
+    @Body() updateDriverDto: { newClientId: string },
   ) {
-    return this.driversService.migrate(id, data.newClientId);
+    throw new BadRequestException('Método migrate não implementado ainda');
   }
 }

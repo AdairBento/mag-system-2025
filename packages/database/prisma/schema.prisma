@@ -7,79 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==================== USERS ====================
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  password  String
-  role      UserRole @default(USER)
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("users")
-}
-
-enum UserRole {
-  ADMIN
-  MANAGER
-  USER
-}
-
-// ==================== CLIENTS ====================
-model Client {
-  id              String       @id @default(uuid())
-  type            ClientType
-  status          ClientStatus @default(ATIVO)
-
-  // Individual Person (PF)
-  name            String?
-  cpf             String?      @unique
-  rg              String?
-  birthDate       DateTime?
-
-  // Company (PJ)
-  companyName     String?
-  cnpj            String?      @unique
-  tradeName       String?
-  stateRegistration String?
-
-  // Contact (Common)
-  cellphone       String?
-  telephone       String?
-  email           String?
-
-  // Address (Common)
-  zipCode         String?
-  street          String?
-  number          String?
-  complement      String?
-  neighborhood    String?
-  city            String?
-  state           String?
-
-  // Driver License (for rental)
-  licenseNumber   String?
-  licenseCategory String?
-  licenseExpiry   DateTime?
-
-  // Notes
-  notes           String?
-
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  // Relations
-  rentals         Rental[]
-  drivers         Driver[]
-
-  @@map("clients")
-}
-
 enum ClientType {
-  PF // Individual Person
-  PJ // Company
+  PF
+  PJ
 }
 
 enum ClientStatus {
@@ -88,162 +18,291 @@ enum ClientStatus {
   BLOQUEADO
 }
 
-// ==================== DRIVERS ====================
-model Driver {
-  id              String       @id @default(uuid())
-  name            String
-  cpf             String       @unique
-  email           String?
-  licenseNumber   String?
-  licenseCategory String?
-  licenseExpiry   DateTime?
-  phone           String?
-  cellphone       String?
-  status          DriverStatus @default(ATIVO)
-  clientId        String?
-  
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  // Relations
-  client          Client?      @relation(fields: [clientId], references: [id])
-
-  @@map("drivers")
-}
-
 enum DriverStatus {
   ATIVO
   INATIVO
-}
-
-// ==================== VEHICLES ====================
-model Vehicle {
-  id              String        @id @default(uuid())
-  plate           String        @unique
-  brand           String
-  model           String
-  year            Int
-  modelYear       Int?
-  color           String?
-  mileage         Int           @default(0)
-  renavam         String?       @unique
-  chassi          String?       @unique
-  status          VehicleStatus @default(DISPONIVEL)
-  category        String?       // SUV, Sedan, Hatch, etc
-  fuelType        String?       // Gasoline, Ethanol, Flex, Diesel
-
-  // Rental values
-  dailyRate       Float         @default(0)
-  weeklyRate      Float         @default(0)
-  monthlyRate     Float         @default(0)
-
-  // IPVA and Insurance
-  ipvaAmount      Float?
-  ipvaExpiry      DateTime?
-  insuranceAmount Float?
-  insuranceExpiry DateTime?
-
-  // Notes
-  notes           String?
-
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  // Relations
-  rentals         Rental[]
-  maintenances    Maintenance[]
-
-  @@map("vehicles")
+  BLOQUEADO
+  AFASTADO
 }
 
 enum VehicleStatus {
   DISPONIVEL
-  LOCADO
+  ALUGADO
   MANUTENCAO
   INATIVO
 }
 
-// ==================== RENTALS ====================
-model Rental {
-  id              String        @id @default(uuid())
-  clientId        String
-  vehicleId       String
-  status          RentalStatus  @default(ATIVA)
-
-  // Dates
-  startDate       DateTime
-  endDate         DateTime
-  pickupDate      DateTime?
-  returnDate      DateTime?
-
-  // Values
-  dailyRate       Float
-  rentalDays      Int
-  totalAmount     Float
-  paidAmount      Float         @default(0)
-  pendingAmount   Float         @default(0)
-
-  // Mileage
-  startMileage    Int?
-  endMileage      Int?
-  mileageDriven   Int?
-
-  // Fuel
-  fuelOnPickup    String?       // Full, 3/4, Half, etc
-  fuelOnReturn    String?
-
-  // Notes
-  notes           String?
-
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  // Relations
-  client          Client        @relation(fields: [clientId], references: [id])
-  vehicle         Vehicle       @relation(fields: [vehicleId], references: [id])
-
-  @@map("rentals")
-}
-
 enum RentalStatus {
+  RESERVADA
   ATIVA
-  FINALIZADA
-  CANCELADA
-  ATRASADA
-}
-
-// ==================== MAINTENANCE ====================
-model Maintenance {
-  id            String            @id @default(uuid())
-  vehicleId     String
-  type          MaintenanceType
-  description   String
-  amount        Float?
-  startDate     DateTime
-  endDate       DateTime?
-  status        MaintenanceStatus @default(PENDENTE)
-  workshop      String?
-  notes         String?
-
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-
-  // Relations
-  vehicle       Vehicle           @relation(fields: [vehicleId], references: [id])
-
-  @@map("maintenances")
-}
-
-enum MaintenanceType {
-  PREVENTIVA
-  CORRETIVA
-  REVISAO
-  SINISTRO
-}
-
-enum MaintenanceStatus {
-  PENDENTE
-  EM_ANDAMENTO
   CONCLUIDA
   CANCELADA
+}
+
+enum ContractStatus {
+  ATIVO
+  ENCERRADO
+  CANCELADO
+  SUSPENSO
+}
+
+model Client {
+  id     String       @id @default(uuid())
+  type   ClientType
+  status ClientStatus @default(ATIVO)
+
+  // PF (Pessoa Física)
+  name      String?
+  cpf       String?
+  rg        String?
+  birthDate DateTime?
+
+  // PJ (Pessoa Jurídica)
+  companyName       String?
+  cnpj              String?
+  tradeName         String?
+  stateRegistration String?
+
+  // Contact
+  cellphone String?
+  telephone String?
+  email     String?
+
+  // Address
+  zipCode      String?
+  street       String?
+  number       String?
+  complement   String?
+  neighborhood String?
+  city         String?
+  state        String?
+
+  // Driver License (optional for PF)
+  licenseNumber   String?
+  licenseCategory String?
+  licenseExpiry   DateTime?
+
+  // Additional
+  observations String? @db.Text
+
+  // Soft Delete & Audit
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  drivers   Driver[]
+  rentals   Rental[]
+  contracts Contract[]
+
+  // Indexes & Constraints
+  @@unique([email, deletedAt], name: "unique_email_active")
+  @@unique([cpf, deletedAt], name: "unique_cpf_active")
+  @@unique([cnpj, deletedAt], name: "unique_cnpj_active")
+  @@index([email])
+  @@index([cpf])
+  @@index([cnpj])
+  @@index([deletedAt])
+  @@index([isActive])
+  @@index([type])
+  @@index([status])
+  @@index([licenseNumber])
+  @@map("clients")
+}
+
+model Driver {
+  id        String    @id @default(uuid())
+  name      String
+  cpf       String
+  rg        String?
+  birthDate DateTime?
+
+  // Contact
+  cellphone String?
+  telephone String?
+  email     String?
+
+  // Address
+  zipCode      String?
+  street       String?
+  number       String?
+  complement   String?
+  neighborhood String?
+  city         String?
+  state        String?
+
+  // Driver License
+  licenseNumber   String
+  licenseCategory String
+  licenseExpiry   DateTime
+
+  // Status
+  status       DriverStatus @default(ATIVO)
+  observations String?      @db.Text
+
+  // Foreign Key
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  // Soft Delete & Audit
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  rentals Rental[]
+
+  // Indexes
+  @@unique([cpf, deletedAt], name: "unique_cpf_active")
+  @@unique([licenseNumber, deletedAt], name: "unique_license_active")
+  @@index([clientId])
+  @@index([deletedAt])
+  @@index([status])
+  @@map("drivers")
+}
+
+model Vehicle {
+  id        String  @id @default(uuid())
+  plate     String
+  brand     String
+  model     String
+  year      Int
+  modelYear Int?
+  color     String?
+
+  // Vehicle Info
+  renavam  String?
+  chassis  String?
+  mileage  Int?
+  fuelType String?
+
+  // Documents
+  ipvaExpiry      DateTime?
+  insuranceExpiry DateTime?
+
+  // Rental Info
+  dailyRate Float?
+  status    VehicleStatus @default(DISPONIVEL)
+
+  // Additional
+  notes String? @db.Text
+
+  // Soft Delete & Audit
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  rentals Rental[]
+
+  // Indexes
+  @@unique([plate, deletedAt], name: "unique_plate_active")
+  @@index([plate])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("vehicles")
+}
+
+model Contract {
+  id String @id @default(uuid())
+
+  // Vinculo com Cliente
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  // Dados do Contrato
+  contractNumber String    @unique
+  startDate      DateTime
+  endDate        DateTime?
+
+  // Termos e Condições
+  terms    String? @db.Text
+  discount Float?
+  notes    String? @db.Text
+
+  // Status
+  status ContractStatus @default(ATIVO)
+
+  // Documentos
+  signedAt    DateTime?
+  documentUrl String?
+
+  // Soft Delete & Audit
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relações - Múltiplas locações por contrato
+  rentals Rental[]
+
+  // Indexes
+  @@unique([contractNumber, deletedAt], name: "unique_contract_number_active")
+  @@index([clientId])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([startDate])
+  @@map("contracts")
+}
+
+model Rental {
+  id String @id @default(uuid())
+
+  contractId String?
+
+  // Foreign Keys
+  clientId  String
+  driverId  String?
+  vehicleId String
+
+  // Relations
+  client   Client    @relation(fields: [clientId], references: [id])
+  contract Contract? @relation(fields: [contractId], references: [id])
+  driver   Driver?   @relation(fields: [driverId], references: [id])
+  vehicle  Vehicle   @relation(fields: [vehicleId], references: [id])
+
+  // Rental Period
+  startDate  DateTime
+  endDate    DateTime
+  returnDate DateTime?
+
+  // Values
+  dailyRate  Float
+  totalDays  Int
+  totalValue Float
+  paidValue  Float?
+
+  // Status
+  status RentalStatus @default(RESERVADA)
+
+  // Additional
+  observations String? @db.Text
+
+  // Soft Delete & Audit
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Indexes
+  @@index([clientId])
+  @@index([contractId])
+  @@index([driverId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([startDate])
+  @@index([deletedAt])
+  @@map("rentals")
 }

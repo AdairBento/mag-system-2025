@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model clients {
+  id                String       @id @default(uuid())
+  type              ClientType
+  status            ClientStatus @default(ATIVO)
+  name              String?
+  cpf               String?
+  rg                String?
+  cnpj              String?
+  cellphone         String?
+  telephone         String?
+  email             String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  birthDate         DateTime?
+  city              String?
+  companyName       String?
+  complement        String?
+  neighborhood      String?
+  number            String?
+  state             String?
+  stateRegistration String?
+  street            String?
+  tradeName         String?
+  zipCode           String?
+  createdBy         String?
+  deletedAt         DateTime?
+  isActive          Boolean      @default(true)
+  observations      String?
+  updatedBy         String?
+  licenseCategory   String?
+  licenseExpiry     DateTime?
+  licenseNumber     String?
+  drivers           drivers[]
+  rentals           rentals[]
+
+  @@unique([cnpj, deletedAt])
+  @@unique([cpf, deletedAt])
+  @@unique([email, deletedAt])
+  @@index([cnpj])
+  @@index([cpf])
+  @@index([deletedAt])
+  @@index([email])
+  @@index([isActive])
+  @@index([licenseNumber])
+  @@index([status])
+  @@index([type])
+}
+
+model drivers {
+  id              String       @id @default(uuid())
+  name            String
+  cpf             String // CPF can repeat (client can also be driver)
+  email           String?
+  phone           String?
+  cellphone       String?
+  status          DriverStatus @default(ATIVO)
+  licenseNumber   String       @unique
+  licenseCategory String?
+  licenseExpiry   DateTime?
+  clientId        String?
+
+  // Soft delete and audit fields
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String?
+  updatedBy String?
+
+  // Relations
+  clients clients? @relation(fields: [clientId], references: [id])
+
+  @@unique([licenseNumber, deletedAt], name: "unique_license_active")
+  @@index([cpf])
+  @@index([status])
+  @@index([isActive])
+  @@index([deletedAt])
+  @@index([licenseNumber])
+}
+
+model maintenances {
+  id          String            @id
+  vehicleId   String
+  status      MaintenanceStatus @default(PENDENTE)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  amount      Float?
+  description String
+  endDate     DateTime?
+  notes       String?
+  startDate   DateTime
+  type        MaintenanceType
+  workshop    String?
+  vehicles    vehicles          @relation(fields: [vehicleId], references: [id])
+}
+
+model rentals {
+  id            String       @id
+  clientId      String
+  vehicleId     String
+  status        RentalStatus @default(ATIVA)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  dailyRate     Float
+  endDate       DateTime
+  endMileage    Int?
+  fuelOnPickup  String?
+  fuelOnReturn  String?
+  mileageDriven Int?
+  notes         String?
+  paidAmount    Float        @default(0)
+  pendingAmount Float        @default(0)
+  pickupDate    DateTime?
+  rentalDays    Int
+  returnDate    DateTime?
+  startDate     DateTime
+  startMileage  Int?
+  totalAmount   Float
+  clients       clients      @relation(fields: [clientId], references: [id])
+  vehicles      vehicles     @relation(fields: [vehicleId], references: [id])
+}
+
+model users {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(USER)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model vehicles {
+  id              String         @id
+  renavam         String?        @unique
+  chassi          String?        @unique
+  status          VehicleStatus  @default(DISPONIVEL)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  brand           String
+  category        String?
+  color           String?
+  dailyRate       Float          @default(0)
+  fuelType        String?
+  insuranceAmount Float?
+  insuranceExpiry DateTime?
+  ipvaAmount      Float?
+  ipvaExpiry      DateTime?
+  mileage         Int            @default(0)
+  model           String
+  modelYear       Int?
+  monthlyRate     Float          @default(0)
+  notes           String?
+  plate           String         @unique
+  weeklyRate      Float          @default(0)
+  year            Int
+  maintenances    maintenances[]
+  rentals         rentals[]
+}
+
+enum ClientStatus {
+  ATIVO
+  INATIVO
+  BLOQUEADO
+}
+
+enum ClientType {
+  PF
+  PJ
+}
+
+enum DriverStatus {
+  ATIVO
+  INATIVO
+}
+
+enum MaintenanceStatus {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+}
+
+enum MaintenanceType {
+  PREVENTIVA
+  CORRETIVA
+  REVISAO
+  SINISTRO
+}
+
+enum RentalStatus {
+  ATIVA
+  FINALIZADA
+  CANCELADA
+  ATRASADA
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum VehicleStatus {
+  DISPONIVEL
+  LOCADO
+  MANUTENCAO
+  INATIVO
+}

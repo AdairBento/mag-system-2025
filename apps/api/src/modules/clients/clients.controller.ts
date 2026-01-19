@@ -10,54 +10,134 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { FilterClientDto } from './dto/filter-client.dto';
+import { Client } from './entities/client.entity';
 
-@ApiTags('clients')
+@ApiTags('Clients')
 @Controller('clients')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Criar novo cliente' })
+  @ApiOperation({ summary: 'Create a new client' })
+  @ApiResponse({
+    status: 201,
+    description: 'Client created successfully',
+    type: Client,
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 409, description: 'Client already exists' })
   create(@Body() createClientDto: CreateClientDto) {
-    return this.clientsService.create(createClientDto);
-  }
-
-  @Get('search')
-  @ApiOperation({ summary: 'Buscar clientes por nome (autocomplete)' })
-  @ApiQuery({ name: 'q', required: false })
-  @ApiQuery({ name: 'type', required: false })
-  @ApiQuery({ name: 'status', required: false })
-  async search(@Query() query: any) {
-    return this.clientsService.findAll(query);
+    // TODO: Get userId from authentication context
+    const userId = undefined; // Replace with actual user ID from JWT/session
+    return this.clientsService.create(createClientDto, userId);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos os clientes' })
-  findAll(@Query() filters: FilterClientDto) {
-    return this.clientsService.findAll(filters);
+  @ApiOperation({ summary: 'Get all clients with filters' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of clients with pagination',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'type', required: false, enum: ['PF', 'PJ'] })
+  @ApiQuery({ name: 'status', required: false, enum: ['ATIVO', 'INATIVO', 'BLOQUEADO'] })
+  @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+  @ApiQuery({ name: 'includeDeleted', required: false, type: Boolean })
+  findAll(@Query() filterDto: FilterClientDto) {
+    return this.clientsService.findAll(filterDto);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar cliente por ID' })
+  @ApiOperation({ summary: 'Get a client by ID' })
+  @ApiParam({ name: 'id', description: 'Client ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Client found',
+    type: Client,
+  })
+  @ApiResponse({ status: 404, description: 'Client not found' })
   findOne(@Param('id') id: string) {
     return this.clientsService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar cliente' })
+  @ApiOperation({ summary: 'Update a client' })
+  @ApiParam({ name: 'id', description: 'Client ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Client updated successfully',
+    type: Client,
+  })
+  @ApiResponse({ status: 404, description: 'Client not found' })
+  @ApiResponse({ status: 409, description: 'Conflict with existing data' })
   update(@Param('id') id: string, @Body() updateClientDto: UpdateClientDto) {
-    return this.clientsService.update(id, updateClientDto);
+    // TODO: Get userId from authentication context
+    const userId = undefined; // Replace with actual user ID from JWT/session
+    return this.clientsService.update(id, updateClientDto, userId);
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Remover cliente' })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Soft delete a client' })
+  @ApiParam({ name: 'id', description: 'Client ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Client soft deleted successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Client not found' })
+  @ApiResponse({ status: 409, description: 'Cannot delete client with active rentals' })
   remove(@Param('id') id: string) {
-    return this.clientsService.remove(id);
+    // TODO: Get userId from authentication context
+    const userId = undefined; // Replace with actual user ID from JWT/session
+    return this.clientsService.remove(id, userId);
+  }
+
+  @Post(':id/restore')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Restore a soft deleted client' })
+  @ApiParam({ name: 'id', description: 'Client ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Client restored successfully',
+    type: Client,
+  })
+  @ApiResponse({ status: 404, description: 'Client not found' })
+  @ApiResponse({ status: 400, description: 'Client is not deleted' })
+  @ApiResponse({ status: 409, description: 'Cannot restore due to unique constraint' })
+  restore(@Param('id') id: string) {
+    // TODO: Get userId from authentication context
+    const userId = undefined; // Replace with actual user ID from JWT/session
+    return this.clientsService.restore(id, userId);
+  }
+
+  @Delete(':id/force')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Permanently delete a client (ADMIN ONLY)', 
+    description: 'This action cannot be undone. Use with extreme caution.'
+  })
+  @ApiParam({ name: 'id', description: 'Client ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Client permanently deleted',
+  })
+  @ApiResponse({ status: 404, description: 'Client not found' })
+  @ApiResponse({ status: 409, description: 'Cannot delete due to foreign key constraints' })
+  forceDelete(@Param('id') id: string) {
+    // TODO: Add admin role check
+    return this.clientsService.forceDelete(id);
   }
 }

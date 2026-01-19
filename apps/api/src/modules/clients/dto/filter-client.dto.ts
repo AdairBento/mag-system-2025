@@ -1,6 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsEnum, IsInt, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { 
+  IsOptional, 
+  IsString, 
+  IsEnum, 
+  IsInt, 
+  Min,
+  IsBoolean 
+} from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 import { ClientType, ClientStatus } from '@prisma/client';
 
 export class FilterClientDto {
@@ -40,4 +47,23 @@ export class FilterClientDto {
   @IsOptional()
   @IsEnum(ClientStatus)
   status?: ClientStatus;
+
+  @ApiPropertyOptional({ 
+    description: 'Filtrar por clientes ativos/inativos',
+    type: Boolean
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isActive?: boolean;
+
+  @ApiPropertyOptional({ 
+    description: 'Incluir clientes deletados (soft delete)',
+    type: Boolean,
+    default: false
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  includeDeleted?: boolean = false;
 }
