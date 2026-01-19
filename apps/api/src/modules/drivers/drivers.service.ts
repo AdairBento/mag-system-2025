@@ -24,7 +24,9 @@ export class DriversService {
 
     if (existingDriver) {
       throw new ConflictException(
-        'Driver with license number ' + createDriverDto.licenseNumber + ' already exists',
+        'Driver with license number ' +
+          createDriverDto.licenseNumber +
+          ' already exists',
       );
     }
 
@@ -41,12 +43,16 @@ export class DriversService {
             client: { connect: { id: clientId } },
           }
         : {
-            ...rest,
+            name: rest.name,
+            cpf: rest.cpf,
+            email: rest.email,
+            cellphone: rest.cellphone,
+            licenseNumber: rest.licenseNumber,
             licenseCategory: rest.licenseCategory || 'B',
             licenseExpiry: rest.licenseExpiry || new Date(),
+            status: rest.status,
             isActive: true,
             createdBy: userId,
-            clientId: '', // Fallback vazio
           },
     });
   }

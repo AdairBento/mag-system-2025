@@ -144,8 +144,8 @@ model Driver {
   observations String?      @db.Text
 
   // Foreign Key
-  clientId String
-  client   Client @relation(fields: [clientId], references: [id])
+  clientId   String?
+  client     Client?  @relation(fields: [clientId], references: [id])
 
   // Soft Delete & Audit
   isActive  Boolean   @default(true)
@@ -216,8 +216,8 @@ model Contract {
   id String @id @default(uuid())
 
   // Vinculo com Cliente
-  clientId String
-  client   Client @relation(fields: [clientId], references: [id])
+  clientId   String?
+  client     Client?  @relation(fields: [clientId], references: [id])
 
   // Dados do Contrato
   contractNumber String    @unique
@@ -262,12 +262,12 @@ model Rental {
   contractId String?
 
   // Foreign Keys
-  clientId  String
+  clientId   String?
   driverId  String?
   vehicleId String
 
   // Relations
-  client   Client    @relation(fields: [clientId], references: [id])
+  client     Client?  @relation(fields: [clientId], references: [id])
   contract Contract? @relation(fields: [contractId], references: [id])
   driver   Driver?   @relation(fields: [driverId], references: [id])
   vehicle  Vehicle   @relation(fields: [vehicleId], references: [id])
