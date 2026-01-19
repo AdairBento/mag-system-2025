@@ -9,6 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -28,6 +29,8 @@ import { DriverEntity } from './entities/driver.entity';
 @ApiTags('drivers')
 @Controller('drivers')
 export class DriversController {
+  private readonly logger = new Logger(DriversController.name);
+
   constructor(private readonly driversService: DriversService) {}
 
   @Post()
@@ -115,6 +118,16 @@ export class DriversController {
     example: 10,
   })
   findAll(@Query() filters: FilterDriverDto) {
+    this.logger.debug('='.repeat(80));
+    this.logger.debug('🔍 GET /drivers - Query Params Received');
+    this.logger.debug('='.repeat(80));
+    this.logger.debug(`Raw filters object: ${JSON.stringify(filters, null, 2)}`);
+    this.logger.debug(`Type of page: ${typeof filters.page}`);
+    this.logger.debug(`Value of page: ${filters.page}`);
+    this.logger.debug(`Type of limit: ${typeof filters.limit}`);
+    this.logger.debug(`Value of limit: ${filters.limit}`);
+    this.logger.debug('='.repeat(80));
+
     return this.driversService.findAll(filters);
   }
 
