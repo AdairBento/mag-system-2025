@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateDriverDto } from './dto/create-driver.dto';
@@ -19,12 +20,28 @@ export class DriversService {
         licenseNumber: createDriverDto.licenseNumber,
         isActive: true,
       },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     if (existingDriver) {
-      throw new ConflictException(
-        `Driver with license number ${createDriverDto.licenseNumber} already exists`,
-      );
+      // ✅ CORREÇÃO: Retornar dados estruturados para o frontend processar migração
+      throw new ConflictException({
+        message: `Driver with license number ${createDriverDto.licenseNumber} already exists`,
+        error: 'DUPLICATE_LICENSE_NUMBER',
+        existingDriver: {
+          id: existingDriver.id,
+          name: existingDriver.name,
+          clientId: existingDriver.clientId,
+          clientName: existingDriver.client?.name || null,
+        },
+      });
     }
 
     // Se clientId foi fornecido, verificar se cliente existe
@@ -40,18 +57,26 @@ export class DriversService {
       }
     }
 
-    // Converter licenseExpiry para Date se vier como string
-
-
-    const licenseExpiry = typeof createDriverDto.licenseExpiry === 'string' 
-
-
-      ? new Date(createDriverDto.licenseExpiry) 
-
-
-      : createDriverDto.licenseExpiry;
-
-
+    // ✅ CORREÇÃO: Validação robusta de data com múltiplos formatos
+    let licenseExpiry: Date;
+    try {
+      if (typeof createDriverDto.licenseExpiry === 'string') {
+        licenseExpiry = new Date(createDriverDto.licenseExpiry);
+        
+        // Verificar se a data é válida
+        if (isNaN(licenseExpiry.getTime())) {
+          throw new Error('Invalid date format');
+        }
+      } else if (createDriverDto.licenseExpiry instanceof Date) {
+        licenseExpiry = createDriverDto.licenseExpiry;
+      } else {
+        throw new Error('Invalid date type');
+      }
+    } catch (error) {
+      throw new BadRequestException(
+        `Invalid licenseExpiry format. Expected ISO 8601 date string (e.g., "2026-12-31T00:00:00.000Z")`,
+      );
+    }
 
     return this.prisma.driver.create({
       data: {
@@ -292,6 +317,14 @@ export class DriversService {
       where: { id },
       data: {
         clientId: newClientId,
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
   }
