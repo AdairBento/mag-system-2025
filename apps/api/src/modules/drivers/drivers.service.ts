@@ -62,7 +62,7 @@ export class DriversService {
     try {
       if (typeof createDriverDto.licenseExpiry === 'string') {
         licenseExpiry = new Date(createDriverDto.licenseExpiry);
-        
+
         // Verificar se a data é válida
         if (isNaN(licenseExpiry.getTime())) {
           throw new Error('Invalid date format');
@@ -72,7 +72,7 @@ export class DriversService {
       } else {
         throw new Error('Invalid date type');
       }
-    } catch (error) {
+    } catch {
       throw new BadRequestException(
         `Invalid licenseExpiry format. Expected ISO 8601 date string (e.g., "2026-12-31T00:00:00.000Z")`,
       );
@@ -104,52 +104,119 @@ export class DriversService {
     });
   }
 
-  async findAll(filters: FilterDriverDto) {
-    const where: any = {};
-
-    // Aplicar filtros
-    if (filters.name) {
-      where.name = {
-        contains: filters.name,
-        mode: 'insensitive',
-      };
-    }
-
-    if (filters.cpf) {
-      where.cpf = filters.cpf;
-    }
-
-    if (filters.licenseNumber) {
-      where.licenseNumber = filters.licenseNumber;
-    }
-
-    if (filters.status) {
-      where.status = filters.status;
-    }
-
-    if (filters.clientId) {
-      where.clientId = filters.clientId;
-    }
-
-    // Por padrão, não retorna deletados
-    if (!filters.includeDeleted) {
-      where.isActive = true;
-    }
-
-    return this.prisma.driver.findMany({
-      where,
-      orderBy: {
-        name: 'asc',
+  async search(query: string) {
+    const drivers = await this.prisma.driver.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { cpf: { contains: query.replace(/\D/g, '') } },
+          { licenseNumber: { contains: query } },
+        ],
+        deletedAt: null,
+        isActive: true,
       },
-      include: {
+      take: 10,
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        cpf: true,
+        licenseNumber: true,
+        status: true,
+        clientId: true,
         client: {
           select: {
             id: true,
             name: true,
+            companyName: true,
           },
         },
       },
     });
+
+    return drivers;
+  }
+
+  async findAll(filters: FilterDriverDto) {
+    const {
+      name,
+      cpf,
+      licenseNumber,
+      status,
+      clientId,
+      includeDeleted = false,
+      search,
+      page = 1,
+      limit = 10,
+    } = filters;
+
+    const where: any = {};
+
+    // Aplicar filtros
+    if (name) {
+      where.name = {
+        contains: name,
+        mode: 'insensitive',
+      };
+    }
+
+    if (cpf) {
+      where.cpf = cpf;
+    }
+
+    if (licenseNumber) {
+      where.licenseNumber = licenseNumber;
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (clientId) {
+      where.clientId = clientId;
+    }
+
+    // Busca global
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { cpf: { contains: search } },
+        { licenseNumber: { contains: search } },
+      ];
+    }
+
+    // Por padrão, não retorna deletados
+    if (!includeDeleted) {
+      where.isActive = true;
+    }
+
+    const limitNum = Number(limit);
+    const pageNum = Number(page);
+
+    const [data, total] = await Promise.all([
+      this.prisma.driver.findMany({
+        where,
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        orderBy: { name: 'asc' },
+        include: {
+          client: {
+            select: {
+              id: true,
+              name: true,
+              companyName: true,
+            },
+          },
+        },
+      }),
+      this.prisma.driver.count({ where }),
+    ]);
+
+    // ✅ RETORNO CORRETO PARA O FRONTEND
+    return {
+      items: data,
+      total,
+    };
   }
 
   async findOne(id: string, includeDeleted = false) {
@@ -297,7 +364,7 @@ export class DriversService {
 
   async migrate(id: string, newClientId: string | null) {
     // Verificar se motorista existe e está ativo
-    const driver = await this.findOne(id);
+    await this.findOne(id);
 
     // Se newClientId foi fornecido, verificar se cliente existe
     if (newClientId) {
@@ -306,9 +373,7 @@ export class DriversService {
       });
 
       if (!client) {
-        throw new NotFoundException(
-          `Client with ID ${newClientId} not found`,
-        );
+        throw new NotFoundException(`Client with ID ${newClientId} not found`);
       }
     }
 

@@ -40,6 +40,14 @@ export class FilterDriverDto {
   limit?: number = 10;
 
   @ApiPropertyOptional({
+    description: 'Search by name, CPF or license number',
+    example: 'João',
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiPropertyOptional({
     description: 'Filter by driver name',
     example: 'João',
   })

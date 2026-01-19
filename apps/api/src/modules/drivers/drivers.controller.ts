@@ -65,6 +65,24 @@ export class DriversController {
     return this.driversService.create(createDriverDto);
   }
 
+  // ===== ADICIONAR ESTE MÉTODO AQUI =====
+  @Get('search')
+  @ApiOperation({ summary: 'Search drivers by name, CPF or license number' })
+  @ApiQuery({ name: 'q', description: 'Search query', required: true })
+  @ApiResponse({
+    status: 200,
+    description: 'List of matching drivers',
+    type: [DriverEntity],
+  })
+  async search(@Query('q') query: string) {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+
+    return this.driversService.search(query);
+  }
+  // ===== FIM DA ADIÇÃO =====
+
   @Get()
   @ApiOperation({ summary: 'Get all drivers with optional filters' })
   @ApiResponse({
@@ -121,7 +139,9 @@ export class DriversController {
     this.logger.debug('='.repeat(80));
     this.logger.debug('🔍 GET /drivers - Query Params Received');
     this.logger.debug('='.repeat(80));
-    this.logger.debug(`Raw filters object: ${JSON.stringify(filters, null, 2)}`);
+    this.logger.debug(
+      `Raw filters object: ${JSON.stringify(filters, null, 2)}`,
+    );
     this.logger.debug(`Type of page: ${typeof filters.page}`);
     this.logger.debug(`Value of page: ${filters.page}`);
     this.logger.debug(`Type of limit: ${typeof filters.limit}`);
@@ -169,10 +189,7 @@ export class DriversController {
     status: 404,
     description: 'Driver or target client not found',
   })
-  async migrate(
-    @Param('id') id: string,
-    @Body() migrateDto: MigrateDriverDto,
-  ) {
+  async migrate(@Param('id') id: string, @Body() migrateDto: MigrateDriverDto) {
     return this.driversService.migrate(id, migrateDto.newClientId);
   }
 

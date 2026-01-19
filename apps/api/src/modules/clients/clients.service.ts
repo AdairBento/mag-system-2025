@@ -320,6 +320,20 @@ export class ClientsService {
       );
     }
 
+    // ✅ ADICIONAR: Verificar se tem motoristas vinculados
+    const activeDrivers = await this.prisma.driver.count({
+      where: {
+        clientId: id,
+        isActive: true,
+      },
+    });
+
+    if (activeDrivers > 0) {
+      throw new BadRequestException(
+        `Não é possível excluir este cliente pois existem ${activeDrivers} motorista(s) vinculado(s). Remova ou transfira os motoristas primeiro.`,
+      );
+    }
+
     await this.prisma.client.update({
       where: { id },
       data: {
@@ -334,7 +348,6 @@ export class ClientsService {
       deletedAt: new Date(),
     };
   }
-
   async restore(id: string, userId?: string) {
     const client = await this.prisma.client.findUnique({ where: { id } });
 
