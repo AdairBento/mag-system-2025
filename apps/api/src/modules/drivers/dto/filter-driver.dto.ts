@@ -17,49 +17,49 @@ export class FilterDriverDto {
     description: 'Filter by driver name',
     example: 'João',
   })
-  @IsString()
   @IsOptional()
+  @IsString()
   name?: string;
 
   @ApiPropertyOptional({
     description: 'Filter by CPF',
     example: '12345678900',
   })
-  @IsString()
   @IsOptional()
+  @IsString()
   cpf?: string;
 
   @ApiPropertyOptional({
     description: 'Filter by license number',
     example: 'CNH12345678',
   })
-  @IsString()
   @IsOptional()
+  @IsString()
   licenseNumber?: string;
 
   @ApiPropertyOptional({
     description: 'Filter by status',
     enum: DriverStatus,
   })
-  @IsEnum(DriverStatus)
   @IsOptional()
+  @IsEnum(DriverStatus)
   status?: DriverStatus;
 
   @ApiPropertyOptional({
     description: 'Filter by client ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @IsUUID()
   @IsOptional()
+  @IsUUID()
   clientId?: string;
 
   @ApiPropertyOptional({
     description: 'Include soft deleted drivers',
     example: false,
   })
-  @IsBoolean()
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
   includeDeleted?: boolean;
 
   @ApiPropertyOptional({
@@ -68,10 +68,10 @@ export class FilterDriverDto {
     default: 1,
     minimum: 1,
   })
-  @IsInt()
-  @Min(1)
   @IsOptional()
   @Type(() => Number)
+  @IsInt()
+  @Min(1)
   page?: number = 1;
 
   @ApiPropertyOptional({
@@ -81,10 +81,10 @@ export class FilterDriverDto {
     minimum: 1,
     maximum: 100,
   })
+  @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(100)
-  @IsOptional()
-  @Type(() => Number)
   limit?: number = 10;
 }
