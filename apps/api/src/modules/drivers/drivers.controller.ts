@@ -85,6 +85,14 @@ export class DriversController {
     return this.driversService.findAll(filters);
   }
 
+    @Post(':id/migrate')
+  async migrate(
+    @Param('id') id: string,
+    @Body() migrateDto: { newClientId: string | null },
+  ) {
+    return this.driversService.migrate(id, migrateDto.newClientId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a driver by ID' })
   @ApiParam({
@@ -202,4 +210,6 @@ export class DriversController {
   forceDelete(@Param('id') id: string) {
     return this.driversService.forceDelete(id);
   }
+
+  
 }

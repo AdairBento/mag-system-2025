@@ -40,6 +40,19 @@ export class DriversService {
       }
     }
 
+    // Converter licenseExpiry para Date se vier como string
+
+
+    const licenseExpiry = typeof createDriverDto.licenseExpiry === 'string' 
+
+
+      ? new Date(createDriverDto.licenseExpiry) 
+
+
+      : createDriverDto.licenseExpiry;
+
+
+
     return this.prisma.driver.create({
       data: {
         name: createDriverDto.name,
@@ -58,7 +71,7 @@ export class DriversService {
         state: createDriverDto.state,
         licenseNumber: createDriverDto.licenseNumber,
         licenseCategory: createDriverDto.licenseCategory,
-        licenseExpiry: createDriverDto.licenseExpiry,
+        licenseExpiry: licenseExpiry,
         status: createDriverDto.status,
         observations: createDriverDto.observations,
         clientId: createDriverDto.clientId,
@@ -254,6 +267,32 @@ export class DriversService {
     // Exclusão permanente
     return this.prisma.driver.delete({
       where: { id },
+    });
+  }
+
+  async migrate(id: string, newClientId: string | null) {
+    // Verificar se motorista existe e está ativo
+    const driver = await this.findOne(id);
+
+    // Se newClientId foi fornecido, verificar se cliente existe
+    if (newClientId) {
+      const client = await this.prisma.client.findUnique({
+        where: { id: newClientId },
+      });
+
+      if (!client) {
+        throw new NotFoundException(
+          `Client with ID ${newClientId} not found`,
+        );
+      }
+    }
+
+    // Atualizar clientId
+    return this.prisma.driver.update({
+      where: { id },
+      data: {
+        clientId: newClientId,
+      },
     });
   }
 }
