@@ -16,11 +16,13 @@ import {
   ApiResponse,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { DriversService } from './drivers.service';
 import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { FilterDriverDto } from './dto/filter-driver.dto';
+import { MigrateDriverDto } from './dto/migrate-driver.dto';
 import { DriverEntity } from './entities/driver.entity';
 
 @ApiTags('drivers')
@@ -38,6 +40,23 @@ export class DriversController {
   @ApiResponse({
     status: 409,
     description: 'Driver with this license number already exists',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 409 },
+        message: { type: 'string' },
+        error: { type: 'string', example: 'DUPLICATE_LICENSE_NUMBER' },
+        existingDriver: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            name: { type: 'string' },
+            clientId: { type: 'string', format: 'uuid', nullable: true },
+            clientName: { type: 'string', nullable: true },
+          },
+        },
+      },
+    },
   })
   create(@Body() createDriverDto: CreateDriverDto) {
     return this.driversService.create(createDriverDto);
@@ -85,10 +104,47 @@ export class DriversController {
     return this.driversService.findAll(filters);
   }
 
-    @Post(':id/migrate')
+  @Post(':id/migrate')
+  @ApiOperation({
+    summary: 'Migrate driver to a new client or make independent',
+    description:
+      'Transfer a driver from one client to another, or remove client association to make driver independent. Used when a driver changes companies.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Driver UUID to migrate',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiBody({
+    type: MigrateDriverDto,
+    description: 'Migration data',
+    examples: {
+      migrateToClient: {
+        summary: 'Migrate to another client',
+        value: {
+          newClientId: '987e6543-e21b-12d3-a456-426614174000',
+        },
+      },
+      makeIndependent: {
+        summary: 'Make driver independent (no client)',
+        value: {
+          newClientId: null,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Driver successfully migrated',
+    type: DriverEntity,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Driver or target client not found',
+  })
   async migrate(
     @Param('id') id: string,
-    @Body() migrateDto: { newClientId: string | null },
+    @Body() migrateDto: MigrateDriverDto,
   ) {
     return this.driversService.migrate(id, migrateDto.newClientId);
   }
@@ -210,6 +266,4 @@ export class DriversController {
   forceDelete(@Param('id') id: string) {
     return this.driversService.forceDelete(id);
   }
-
-  
 }
