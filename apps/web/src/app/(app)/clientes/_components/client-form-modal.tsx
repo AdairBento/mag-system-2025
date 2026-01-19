@@ -6,33 +6,34 @@ import { getErrorMessage } from "@/lib/api-error-helper";
 import type { Client, ClientType } from "@/types/client";
 import { searchClients } from "@/lib/api/clients";
 
+// ✅ PAYLOAD EM INGLÊS (padrão da API)
 type ClientUpsertPayload = {
   id?: string;
   type: ClientType;
   name: string;
   email: string;
-  phone: string;
-  doc: string;
+  cellphone: string; // ✅ 'cellphone' não 'phone'
 
   // PF
   cpf?: string;
-  cnh: string;
-  cnhCategory: string;
-  cnhExpiration: string;
+  licenseNumber: string; // ✅ não 'cnh'
+  licenseCategory: string; // ✅ não 'cnhCategory'
+  licenseExpiry: string; // ✅ não 'cnhExpiration'
 
   // PJ
   cnpj?: string;
-  ie?: string;
+  stateRegistration?: string; // ✅ não 'ie'
   responsibleName?: string;
   responsiblePhone?: string;
 
-  cep: string;
-  logradouro: string;
-  numero: string;
-  complemento?: string;
-  bairro: string;
-  cidade: string;
-  uf: string;
+  // Endereço em INGLÊS
+  zipCode: string; // ✅ não 'cep'
+  street: string; // ✅ não 'logradouro'
+  number: string; // ✅ não 'numero'
+  complement?: string; // ✅ não 'complemento'
+  neighborhood: string; // ✅ não 'bairro'
+  city: string; // ✅ não 'cidade'
+  state: string; // ✅ não 'uf'
 
   status: "ATIVO";
 };
@@ -45,12 +46,12 @@ interface Props {
   onSubmit: (payload: ClientUpsertPayload) => void | Promise<void>;
 }
 
+// 🇧🇷 FormState continua em PORTUGUÊS (para o usuário ver no formulário)
 type FormState = {
   id: string;
   name: string;
   email: string;
   telefone: string;
-  doc: string;
 
   // PF
   cpf: string;
@@ -78,7 +79,6 @@ const emptyForm: FormState = {
   name: "",
   email: "",
   telefone: "",
-  doc: "",
   cpf: "",
   cnh: "",
   cnhCategory: "",
@@ -120,8 +120,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
         email: initialData.email ?? "",
         telefone: initialData.phone ?? "",
 
-        doc: (cpf || cnpj || "").replace(/\D/g, ""),
-
         cpf,
         cnh: initialData.cnh ?? "",
         cnhCategory: initialData.cnhCategory ?? "",
@@ -149,12 +147,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
   const setField = (name: keyof FormState, value: string) =>
     setForm((p) => ({ ...p, [name]: value }));
 
-  const updateDocField = (cpf: string, cnpj: string) => {
-    const cleanCpf = cpf.replace(/\D/g, "");
-    const cleanCnpj = cnpj.replace(/\D/g, "");
-    setForm((prev) => ({ ...prev, doc: cleanCpf || cleanCnpj || "" }));
-  };
-
   const fetchAddressByCep = useCallback(async (cep: string) => {
     const clean = cep.replace(/\D/g, "");
     if (clean.length !== 8) return;
@@ -179,12 +171,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setField(name as keyof FormState, value);
-
-    if (name === "cpf" || name === "cnpj") {
-      const cpf = name === "cpf" ? value : form.cpf;
-      const cnpj = name === "cnpj" ? value : form.cnpj;
-      updateDocField(cpf, cnpj);
-    }
   };
 
   const onPhone = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -194,15 +180,11 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     setField("responsiblePhone", maskPhone(e.target.value));
 
   const onCpf = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const masked = maskCPF(e.target.value);
-    setField("cpf", masked);
-    updateDocField(masked, form.cnpj);
+    setField("cpf", maskCPF(e.target.value));
   };
 
   const onCnpj = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const masked = maskCNPJ(e.target.value);
-    setField("cnpj", masked);
-    updateDocField(form.cpf, masked);
+    setField("cnpj", maskCNPJ(e.target.value));
   };
 
   const onCep = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -255,7 +237,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
       telefone: client.cellphone ?? "",
       cpf: client.cpf ?? "",
       cnpj: client.cnpj ?? "",
-      doc: client.cpf?.replace(/\D/g, "") ?? client.cnpj?.replace(/\D/g, "") ?? "",
       cnh: client.cnh ?? "",
       cnhCategory: client.cnhCategory ?? "",
       cnhValidade: client.cnhExpiration ?? "",
@@ -275,7 +256,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     if (!form.name.trim()) return false;
     if (!form.email.trim()) return false;
     if (!form.telefone.replace(/\D/g, "")) return false;
-    if (!form.doc) return false;
 
     const cepOk = form.cep.replace(/\D/g, "").length === 8;
     if (
@@ -311,21 +291,22 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     setLoading(true);
 
     try {
+      // 🔄 MAPEAMENTO PT → EN (PROFISSIONAL)
       const base = {
         id: form.id || undefined,
         type: clientType,
         name: form.name.trim(),
         email: form.email.trim(),
-        phone: form.telefone.replace(/\D/g, ""),
-        doc: form.doc,
+        cellphone: form.telefone.replace(/\D/g, ""), // ✅
 
-        cep: form.cep.replace(/\D/g, ""),
-        logradouro: form.logradouro.trim(),
-        numero: form.numero.trim(),
-        complemento: form.complemento.trim() || undefined,
-        bairro: form.bairro.trim(),
-        cidade: form.cidade.trim(),
-        uf: form.uf.toUpperCase().trim(),
+        // Endereço em INGLÊS
+        zipCode: form.cep.replace(/\D/g, ""), // ✅
+        street: form.logradouro.trim(), // ✅
+        number: form.numero.trim(), // ✅
+        complement: form.complemento.trim() || undefined, // ✅
+        neighborhood: form.bairro.trim(), // ✅
+        city: form.cidade.trim(), // ✅
+        state: form.uf.toUpperCase().trim(), // ✅
 
         status: "ATIVO" as const,
       };
@@ -335,19 +316,19 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
           ? {
               ...base,
               cpf: form.cpf.replace(/\D/g, "") || undefined,
-              cnh: form.cnh.trim(),
-              cnhCategory: form.cnhCategory,
-              cnhExpiration: form.cnhValidade,
+              licenseNumber: form.cnh.trim(), // ✅
+              licenseCategory: form.cnhCategory, // ✅
+              licenseExpiry: form.cnhValidade, // ✅
             }
           : {
               ...base,
               cnpj: form.cnpj.replace(/\D/g, "") || undefined,
-              ie: form.ie.trim() || undefined,
+              stateRegistration: form.ie.trim() || undefined, // ✅
               responsibleName: form.responsibleName.trim(),
               responsiblePhone: form.responsiblePhone.replace(/\D/g, ""),
-              cnh: "",
-              cnhCategory: "",
-              cnhExpiration: "",
+              licenseNumber: "", // ✅
+              licenseCategory: "", // ✅
+              licenseExpiry: "", // ✅
             };
 
       await onSubmit(payload);

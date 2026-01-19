@@ -43,6 +43,24 @@ export class ClientsController {
     return this.clientsService.create(createClientDto, userId);
   }
 
+  // ===== ADICIONAR ESTE MÉTODO AQUI =====
+  @Get('search')
+  @ApiOperation({ summary: 'Search clients by name, CPF or email' })
+  @ApiQuery({ name: 'q', description: 'Search query', required: true })
+  @ApiResponse({
+    status: 200,
+    description: 'List of matching clients',
+    type: [Client],
+  })
+  async search(@Query('q') query: string) {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+
+    return this.clientsService.search(query);
+  }
+  // ===== FIM DA ADIÇÃO =====
+
   @Get()
   @ApiOperation({ summary: 'Get all clients with filters' })
   @ApiResponse({
@@ -53,7 +71,11 @@ export class ClientsController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'type', required: false, enum: ['PF', 'PJ'] })
-  @ApiQuery({ name: 'status', required: false, enum: ['ATIVO', 'INATIVO', 'BLOQUEADO'] })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['ATIVO', 'INATIVO', 'BLOQUEADO'],
+  })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiQuery({ name: 'includeDeleted', required: false, type: Boolean })
   findAll(@Query() filterDto: FilterClientDto) {
@@ -98,7 +120,10 @@ export class ClientsController {
     description: 'Client soft deleted successfully',
   })
   @ApiResponse({ status: 404, description: 'Client not found' })
-  @ApiResponse({ status: 409, description: 'Cannot delete client with active rentals' })
+  @ApiResponse({
+    status: 409,
+    description: 'Cannot delete client with active rentals',
+  })
   remove(@Param('id') id: string) {
     // TODO: Get userId from authentication context
     const userId = undefined; // Replace with actual user ID from JWT/session
@@ -116,7 +141,10 @@ export class ClientsController {
   })
   @ApiResponse({ status: 404, description: 'Client not found' })
   @ApiResponse({ status: 400, description: 'Client is not deleted' })
-  @ApiResponse({ status: 409, description: 'Cannot restore due to unique constraint' })
+  @ApiResponse({
+    status: 409,
+    description: 'Cannot restore due to unique constraint',
+  })
   restore(@Param('id') id: string) {
     // TODO: Get userId from authentication context
     const userId = undefined; // Replace with actual user ID from JWT/session
@@ -125,9 +153,9 @@ export class ClientsController {
 
   @Delete(':id/force')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
-    summary: 'Permanently delete a client (ADMIN ONLY)', 
-    description: 'This action cannot be undone. Use with extreme caution.'
+  @ApiOperation({
+    summary: 'Permanently delete a client (ADMIN ONLY)',
+    description: 'This action cannot be undone. Use with extreme caution.',
   })
   @ApiParam({ name: 'id', description: 'Client ID' })
   @ApiResponse({
@@ -135,7 +163,10 @@ export class ClientsController {
     description: 'Client permanently deleted',
   })
   @ApiResponse({ status: 404, description: 'Client not found' })
-  @ApiResponse({ status: 409, description: 'Cannot delete due to foreign key constraints' })
+  @ApiResponse({
+    status: 409,
+    description: 'Cannot delete due to foreign key constraints',
+  })
   forceDelete(@Param('id') id: string) {
     // TODO: Add admin role check
     return this.clientsService.forceDelete(id);

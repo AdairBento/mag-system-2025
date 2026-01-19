@@ -7,6 +7,7 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { ClientType, ClientStatus } from '@prisma/client';
 
 export class CreateClientDto {
@@ -77,57 +78,66 @@ export class CreateClientDto {
   @IsOptional()
   email?: string;
 
-  // Address
+  // Address - INGLÊS
   @ApiPropertyOptional({ description: 'CEP' })
   @IsString()
   @IsOptional()
+  @Transform(({ obj }) => obj.zipCode || obj.cep)
   zipCode?: string;
 
   @ApiPropertyOptional({ description: 'Rua/Avenida' })
   @IsString()
   @IsOptional()
+  @Transform(({ obj }) => obj.street || obj.logradouro)
   street?: string;
 
   @ApiPropertyOptional({ description: 'Número' })
   @IsString()
   @IsOptional()
+  @Transform(({ obj }) => obj.number || obj.numero)
   number?: string;
 
   @ApiPropertyOptional({ description: 'Complemento' })
   @IsString()
   @IsOptional()
+  @Transform(({ obj }) => obj.complement || obj.complemento)
   complement?: string;
 
   @ApiPropertyOptional({ description: 'Bairro' })
   @IsString()
   @IsOptional()
+  @Transform(({ obj }) => obj.neighborhood || obj.bairro)
   neighborhood?: string;
 
   @ApiPropertyOptional({ description: 'Cidade' })
   @IsString()
   @IsOptional()
+  @Transform(({ obj }) => obj.city || obj.cidade)
   city?: string;
 
   @ApiPropertyOptional({ description: 'Estado (UF)' })
   @IsString()
   @IsOptional()
+  @Transform(({ obj }) => obj.state || obj.estado)
   state?: string;
 
-
-  // Driver License (for PF clients who drive)
+  // Driver License - INGLÊS
   @ApiPropertyOptional({ description: 'Número da CNH' })
   @IsString()
   @IsOptional()
+  @Transform(({ obj }) => obj.licenseNumber || obj.cnhNumero)
   licenseNumber?: string;
 
   @ApiPropertyOptional({ description: 'Categoria da CNH' })
   @IsString()
   @IsOptional()
+  @Transform(({ obj }) => obj.licenseCategory || obj.cnhCategoria)
   licenseCategory?: string;
 
   @ApiPropertyOptional({ description: 'Validade da CNH' })
   @IsDateString()
   @IsOptional()
+  @Transform(({ obj }) => obj.licenseExpiry || obj.cnhValidade)
   licenseExpiry?: string;
 
   // Additional Fields
@@ -136,12 +146,11 @@ export class CreateClientDto {
   @IsOptional()
   observations?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Cliente ativo/inativo',
-    default: true 
+    default: true,
   })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
 }
-

@@ -109,6 +109,35 @@ export class ClientsService {
     }
   }
 
+  async search(query: string) {
+    const clients = await this.prisma.client.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { companyName: { contains: query, mode: 'insensitive' } },
+          { cpf: { contains: query.replace(/\D/g, '') } },
+          { cnpj: { contains: query.replace(/\D/g, '') } },
+          { email: { contains: query, mode: 'insensitive' } },
+        ],
+        deletedAt: null,
+      },
+      take: 10,
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        type: true,
+        name: true,
+        companyName: true,
+        cpf: true,
+        cnpj: true,
+        email: true,
+        cellphone: true,
+      },
+    });
+
+    return clients;
+  }
+
   async findAll(filterDto: FilterClientDto) {
     const {
       type,
@@ -132,11 +161,11 @@ export class ClientsService {
 
     if (search) {
       where.OR = [
-        { name: { contains: search } },
-        { companyName: { contains: search } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { companyName: { contains: search, mode: 'insensitive' } },
         { cpf: { contains: search } },
         { cnpj: { contains: search } },
-        { email: { contains: search } },
+        { email: { contains: search, mode: 'insensitive' } },
         { cellphone: { contains: search } },
         { telephone: { contains: search } },
       ];
@@ -163,14 +192,10 @@ export class ClientsService {
       this.prisma.client.count({ where }),
     ]);
 
+    // ✅ RETORNO CORRETO PARA O FRONTEND
     return {
-      data,
-      meta: {
-        total,
-        page: pageNum,
-        limit: limitNum,
-        pages: Math.ceil(total / limitNum),
-      },
+      items: data,
+      total,
     };
   }
 
