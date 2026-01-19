@@ -5,9 +5,12 @@ import {
   IsEnum,
   IsUUID,
   IsBoolean,
+  IsInt,
+  Min,
+  Max,
 } from 'class-validator';
 import { DriverStatus } from '@prisma/client';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class FilterDriverDto {
   @ApiPropertyOptional({
@@ -58,4 +61,30 @@ export class FilterDriverDto {
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   includeDeleted?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Page number for pagination',
+    example: 1,
+    default: 1,
+    minimum: 1,
+  })
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  @Type(() => Number)
+  page?: number = 1;
+
+  @ApiPropertyOptional({
+    description: 'Number of results per page',
+    example: 10,
+    default: 10,
+    minimum: 1,
+    maximum: 100,
+  })
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number = 10;
 }
