@@ -78,15 +78,15 @@ POST /drivers
 // drivers.service.ts - create()
 const existingDriver = await prisma.driver.findFirst({
   where: {
-    licenseNumber: 'CNH12345678',
+    licenseNumber: "CNH12345678",
     isActive: true,
   },
 });
 
 if (existingDriver) {
   throw new ConflictException({
-    message: 'Driver with this license number already exists',
-    error: 'DUPLICATE_LICENSE_NUMBER',
+    message: "Driver with this license number already exists",
+    error: "DUPLICATE_LICENSE_NUMBER",
     existingDriver: {
       id: existingDriver.id,
       name: existingDriver.name,
@@ -309,9 +309,7 @@ import { DriverMigrationModal } from "@/components/modals/DriverMigrationModal";
 
 ```tsx
 const [isMigrationModalOpen, setIsMigrationModalOpen] = useState(false);
-const [existingDriver, setExistingDriver] = useState<ExistingDriver | null>(
-  null
-);
+const [existingDriver, setExistingDriver] = useState<ExistingDriver | null>(null);
 ```
 
 ### 3. Capturar Erro 409 no Create
@@ -339,12 +337,8 @@ try {
 ### 4. Implementar Callback de Migração
 
 ```tsx
-const handleMigrationConfirm = async (
-  driverId: string,
-  newClientId: string | null
-) => {
-  const clientIdToSend =
-    newClientId === "__independent__" ? null : newClientId;
+const handleMigrationConfirm = async (driverId: string, newClientId: string | null) => {
+  const clientIdToSend = newClientId === "__independent__" ? null : newClientId;
 
   const response = await fetch(`/api/drivers/${driverId}/migrate`, {
     method: "POST",
