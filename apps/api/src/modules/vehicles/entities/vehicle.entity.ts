@@ -15,6 +15,8 @@ export class Vehicle implements PrismaVehicle {
   ipvaExpiry: Date | null;
   insuranceExpiry: Date | null;
   dailyRate: number | null;
+  weeklyRate: number | null;
+  monthlyRate: number | null;
   status: VehicleStatus;
   notes: string | null;
   isActive: boolean;
