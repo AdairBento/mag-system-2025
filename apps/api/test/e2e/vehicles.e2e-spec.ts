@@ -1,12 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import request from 'supertest';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest'; // ✅ SEM "* as"
 import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/common/prisma/prisma.service';
 
 describe('VehiclesController (e2e)', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
   let createdVehicleId: string | undefined;
 
   beforeAll(async () => {
@@ -15,52 +13,49 @@ describe('VehiclesController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-
-    prisma = app.get<PrismaService>(PrismaService);
     await app.init();
   });
 
   afterAll(async () => {
-    if (createdVehicleId) {
-      await prisma.vehicle
-        .delete({
-          where: { id: createdVehicleId },
-        })
-        .catch(() => {
-          // Vehicle já foi deletado no teste
-        });
-    }
     await app.close();
+  });
+
+  // ✅ Limpar antes de cada teste
+  beforeEach(async () => {
+    // Se o veículo foi criado no teste anterior, deletar
+    if (createdVehicleId) {
+      await request(app.getHttpServer())
+        .delete(`/vehicles/${createdVehicleId}`)
+        .catch(() => {}); // Ignorar erro se não existir
+      createdVehicleId = undefined;
+    }
   });
 
   describe('POST /vehicles', () => {
     it('should create a new vehicle', () => {
+      const uniquePlate = `TST${Date.now().toString().slice(-4)}`;
+
       return request(app.getHttpServer())
         .post('/vehicles')
         .send({
-          plate: 'ABC1D23',
-          model: 'Test Vehicle Model',
-          brand: 'Test Brand',
-          year: 2023,
-          color: 'Blue',
-          mileage: 15000,
-          renavam: '12345678901',
-          chassi: 'ABC123XYZ456789',
+          plate: uniquePlate,
+          brand: 'Volkswagen',
+          model: 'Gol',
+          year: 2020,
+          color: 'Preto',
+          mileage: 35000,
+          dailyRate: 90,
+          weeklyRate: 500,
+          monthlyRate: 1600,
           status: 'DISPONIVEL',
         })
         .expect(201)
         .then((response) => {
-          expect(response.body).toHaveProperty('id');
-          expect(response.body.plate).toBe('ABC1D23');
-          expect(response.body.mileage).toBe(15000);
           createdVehicleId = response.body.id;
+          expect(response.body).toHaveProperty('id');
+          expect(response.body.plate).toBe(uniquePlate);
+          expect(response.body.brand).toBe('Volkswagen');
+          expect(response.body.model).toBe('Gol');
         });
     });
   });
@@ -78,36 +73,102 @@ describe('VehiclesController (e2e)', () => {
   });
 
   describe('GET /vehicles/:id', () => {
-    it('should return a specific vehicle', () => {
+    it('should return a specific vehicle', async () => {
+      const uniquePlate = `TST${Date.now().toString().slice(-4)}`;
+
+      const createResponse = await request(app.getHttpServer())
+        .post('/vehicles')
+        .send({
+          plate: uniquePlate,
+          brand: 'Ford',
+          model: 'Ka',
+          year: 2021,
+          color: 'Branco',
+          mileage: 20000,
+          dailyRate: 80,
+          weeklyRate: 450,
+          monthlyRate: 1400,
+          status: 'DISPONIVEL',
+        })
+        .expect(201);
+
+      createdVehicleId = createResponse.body.id;
+
       return request(app.getHttpServer())
         .get(`/vehicles/${createdVehicleId}`)
         .expect(200)
         .then((response) => {
           expect(response.body.id).toBe(createdVehicleId);
+          expect(response.body.plate).toBe(uniquePlate);
         });
     });
   });
 
   describe('PATCH /vehicles/:id', () => {
-    it('should update a vehicle', () => {
+    it('should update a vehicle', async () => {
+      const uniquePlate = `TST${Date.now().toString().slice(-4)}`;
+
+      const createResponse = await request(app.getHttpServer())
+        .post('/vehicles')
+        .send({
+          plate: uniquePlate,
+          brand: 'Chevrolet',
+          model: 'Onix',
+          year: 2022,
+          color: 'Vermelho',
+          mileage: 15000,
+          dailyRate: 100,
+          weeklyRate: 550,
+          monthlyRate: 1800,
+          status: 'DISPONIVEL',
+        })
+        .expect(201);
+
+      createdVehicleId = createResponse.body.id;
+
       return request(app.getHttpServer())
         .patch(`/vehicles/${createdVehicleId}`)
         .send({
-          mileage: 20000,
-          status: 'LOCADO',
+          mileage: 16000,
+          status: 'ALUGADO',
         })
-        .expect(200);
+        .expect(200)
+        .then((response) => {
+          expect(response.body.mileage).toBe(16000);
+          expect(response.body.status).toBe('ALUGADO');
+        });
     });
   });
 
   describe('DELETE /vehicles/:id', () => {
-    it('should delete a vehicle', () => {
+    it('should delete a vehicle', async () => {
+      const uniquePlate = `TST${Date.now().toString().slice(-4)}`;
+
+      const createResponse = await request(app.getHttpServer())
+        .post('/vehicles')
+        .send({
+          plate: uniquePlate,
+          brand: 'Fiat',
+          model: 'Uno',
+          year: 2019,
+          color: 'Azul',
+          mileage: 40000,
+          dailyRate: 70,
+          weeklyRate: 400,
+          monthlyRate: 1300,
+          status: 'DISPONIVEL',
+        })
+        .expect(201);
+
+      const vehicleId = createResponse.body.id;
+
+      await request(app.getHttpServer())
+        .delete(`/vehicles/${vehicleId}`)
+        .expect(204);
+
       return request(app.getHttpServer())
-        .delete(`/vehicles/${createdVehicleId}`)
-        .expect(204)
-        .then(() => {
-          createdVehicleId = undefined;
-        });
+        .get(`/vehicles/${vehicleId}`)
+        .expect(404);
     });
   });
 });

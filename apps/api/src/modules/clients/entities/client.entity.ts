@@ -1,4 +1,8 @@
-import { Client as PrismaClient, ClientType, ClientStatus } from '@prisma/client';
+import {
+  Client as PrismaClient,
+  ClientType,
+  ClientStatus,
+} from '@prisma/client';
 
 export class Client implements PrismaClient {
   id: string;

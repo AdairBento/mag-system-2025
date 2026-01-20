@@ -15,7 +15,8 @@ export class VehiclesService {
 
   async create(createVehicleDto: CreateVehicleDto) {
     // Check if plate already exists
-    const existing = await this.prisma.vehicle.findFirst({ where: { plate: createVehicleDto.plate, deletedAt: null },
+    const existing = await this.prisma.vehicle.findFirst({
+      where: { plate: createVehicleDto.plate, deletedAt: null },
     });
 
     if (existing) {
@@ -45,7 +46,13 @@ export class VehiclesService {
   }
 
   async findAll(filters: FilterVehicleDto) {
-    const { page = 1, limit = 10, search, status, category } = filters;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      status,
+      category: _category,
+    } = filters;
 
     const pageNum = Number(page);
     const limitNum = Number(limit);
