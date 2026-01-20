@@ -42,11 +42,11 @@ export function VehicleTable({ items, onEdit, onDelete }: Props) {
           ) : (
             items.map((v) => (
               <tr key={v.id} className="border-b last:border-0">
-                <td className="px-3 py-2 font-medium">{v.placa}</td>
-                <td className="px-3 py-2">{v.marca}</td>
-                <td className="px-3 py-2">{v.modelo}</td>
-                <td className="px-3 py-2">{v.ano}</td>
-                <td className="px-3 py-2">{v.cor ?? "-"}</td>
+                <td className="px-3 py-2 font-medium">{v.plate}</td>
+                <td className="px-3 py-2">{v.brand}</td>
+                <td className="px-3 py-2">{v.model}</td>
+                <td className="px-3 py-2">{v.year}</td>
+                <td className="px-3 py-2">{v.color ?? "-"}</td>
                 <td className="px-3 py-2">
                   <span
                     className={`inline-flex rounded px-2 py-1 text-xs font-semibold ${statusColors[v.status] || "bg-gray-100 text-gray-800"}`}
@@ -54,7 +54,7 @@ export function VehicleTable({ items, onEdit, onDelete }: Props) {
                     {v.status}
                   </span>
                 </td>
-                <td className="px-3 py-2">{v.quilometragem?.toLocaleString("pt-BR") ?? "-"}</td>
+                <td className="px-3 py-2">{v.mileage?.toLocaleString("pt-BR") ?? "-"}</td>
                 <td className="px-3 py-2 text-right">
                   <div className="flex justify-end gap-2">
                     <button

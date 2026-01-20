@@ -10,7 +10,7 @@ export function useTranslation(locale: string = "pt-BR") {
     let value: Record<string, unknown> = translations;
 
     for (const k of keys) {
-      value = (value as Record<string, unknown>)?.[k];
+      value = ((value as Record<string, unknown>)?.[k] ?? {}) as Record<string, unknown>;
     }
 
     if (typeof value !== "string") {

@@ -1,7 +1,32 @@
-import type { Vehicle, VehicleStatus, VehicleFilters } from "@/types/vehicle";
 import { api } from "./http";
 
+export type VehicleStatus = "DISPONIVEL" | "LOCADO" | "MANUTENCAO" | "INATIVO";
+
+export type Vehicle = {
+  id: string;
+  placa: string;
+  marca: string;
+  modelo: string;
+  ano: number;
+  cor?: string;
+  status: VehicleStatus;
+  quilometragem?: number;
+  renavam?: string;
+  chassi?: string;
+  valorDiaria: number;
+  valorSemanal: number;
+  valorMensal: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type VehicleFilters = {
+  search?: string;
+  status?: VehicleStatus | "ALL";
+};
+
 export type ListResponse<T> = {
+  ok: boolean;
   data: T[];
   meta: { total: number; page: number; limit: number; pages: number };
 };
@@ -12,7 +37,7 @@ export async function getVehicles(filters: VehicleFilters, page = 1, limit = 10)
   if (filters.status && filters.status !== "ALL") qs.set("status", filters.status);
   qs.set("page", String(page));
   qs.set("limit", String(limit));
-  return api<ListResponse<Vehicle>>("/vehicles?" + qs.toString());
+  return api<ListResponse<Vehicle>>(`/vehicles?${qs.toString()}`);
 }
 
 export async function createVehicle(payload: unknown) {
@@ -20,12 +45,9 @@ export async function createVehicle(payload: unknown) {
 }
 
 export async function updateVehicle(id: string, payload: unknown) {
-  return api<Vehicle>("/vehicles/" + id, { method: "PATCH", body: JSON.stringify(payload) });
+  return api<Vehicle>(`/vehicles/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
 }
 
 export async function deleteVehicle(id: string) {
-  return api<void>("/vehicles/" + id, { method: "DELETE" });
+  return api<{ ok: boolean }>(`/vehicles/${id}`, { method: "DELETE" });
 }
-
-// Re-export types from centralized location
-export type { Vehicle, VehicleStatus, VehicleFilters } from "@/types/vehicle";

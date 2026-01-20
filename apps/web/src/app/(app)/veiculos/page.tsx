@@ -105,9 +105,9 @@ export default function VeiculosPage() {
 
   const filteredVehicles = vehicles.filter((vehicle: Vehicle) => {
     const matchesSearch =
-      vehicle.placa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.modelo.toLowerCase().includes(searchTerm.toLowerCase());
+      vehicle.plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.model?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === "ALL" || vehicle.status === statusFilter;
 
@@ -324,21 +324,21 @@ export default function VeiculosPage() {
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-semibold text-gray-900">
-                              {vehicle.marca} {vehicle.modelo}
+                              {vehicle.brand} {vehicle.model}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {vehicle.ano} • {vehicle.cor || "Sem cor"}
+                              {vehicle.year} • {vehicle.color || "Sem cor"}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-mono font-bold text-gray-900">
-                          {vehicle.placa}
+                          {vehicle.plate}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {vehicle.quilometragem?.toLocaleString("pt-BR") || "0"} km
+                        {vehicle.mileage?.toLocaleString("pt-BR") || "0"} km
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span

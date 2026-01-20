@@ -25,9 +25,39 @@ import type { Client, ClientType } from "@/types/client";
 import type { Driver } from "@/types/driver";
 import { ClientFormModal } from "./_components/client-form-modal";
 import { DriverFormModal } from "./_components/driver-form-modal";
-import type { ClientUpsertPayload } from "@/types/forms";
 
 type Tab = "clients" | "drivers";
+
+type ClientUpsertPayload = {
+  id?: string;
+  type: ClientType;
+  name: string;
+  email: string;
+  phone: string;
+  doc: string;
+
+  // PF
+  cpf?: string;
+  cnh: string;
+  cnhCategory: string;
+  cnhExpiration: string;
+
+  // PJ
+  cnpj?: string;
+  ie?: string;
+  responsibleName?: string;
+  responsiblePhone?: string;
+
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento?: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+
+  status: "ATIVO";
+};
 
 export default function ClientsPage() {
   const queryClient = useQueryClient();
@@ -114,25 +144,25 @@ export default function ClientsPage() {
         // PJ
         razaoSocial: payload.type === "PJ" ? payload.name : undefined,
         cnpj: payload.type === "PJ" ? payload.cnpj : undefined,
-        inscricaoEstadual: payload.type === "PJ" ? payload.stateRegistration : undefined,
+        inscricaoEstadual: payload.type === "PJ" ? payload.ie : undefined,
 
         // Contato
-        cellphone: payload.cellphone,
+        cellphone: payload.phone,
         email: payload.email,
 
         // CNH
-        cnhNumero: payload.licenseNumber,
-        cnhCategoria: payload.licenseCategory,
-        cnhValidade: payload.licenseExpiry,
+        cnhNumero: payload.cnh,
+        cnhCategoria: payload.cnhCategory,
+        cnhValidade: payload.cnhExpiration,
 
         // Endereço
-        cep: payload.zipCode,
-        logradouro: payload.street,
-        numero: payload.number,
-        complemento: payload.complement,
-        bairro: payload.neighborhood,
-        cidade: payload.city,
-        estado: payload.state,
+        cep: payload.cep,
+        logradouro: payload.logradouro,
+        numero: payload.numero,
+        complemento: payload.complemento,
+        bairro: payload.bairro,
+        cidade: payload.cidade,
+        estado: payload.uf,
       };
 
       if (payload.id) {

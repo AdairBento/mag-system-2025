@@ -1,24 +1,11 @@
 "use client";
+import type { VehicleStatus } from "@/types/vehicle";
+import type { VehicleFormData } from "@/types/vehicle";
 
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, AlertCircle } from "lucide-react";
 import type { Vehicle } from "@/lib/api/vehicles";
-
-export interface VehicleFormData {
-  id: string;
-  placa: string;
-  marca: string;
-  modelo: string;
-  ano: number;
-  cor: string;
-  quilometragem: number;
-  renavam: string;
-  chassi: string;
-  status: string;
-  valorDiaria: number;
-  valorSemanal: number;
-  valorMensal: number;
-}
+import { getBrands, getModels, getYears, type Brand, type Model, type ModelYear } from "@/lib/fipe";
 
 interface VehicleFormModalProps {
   isOpen: boolean;
@@ -40,61 +27,145 @@ const CAR_COLORS = [
   "Bege",
 ];
 
-const DEFAULT_FORM_DATA: VehicleFormData = {
-  id: "",
-  placa: "",
-  marca: "",
-  modelo: "",
-  ano: new Date().getFullYear(),
-  cor: "",
-  quilometragem: 0,
-  renavam: "",
-  chassi: "",
-  status: "DISPONIVEL",
-  valorDiaria: 0,
-  valorSemanal: 0,
-  valorMensal: 0,
-};
-
 export function VehicleFormModal({
   isOpen,
   onClose,
   onSubmit,
   initialData,
 }: VehicleFormModalProps) {
-  const [formData, setFormData] = useState<VehicleFormData>(DEFAULT_FORM_DATA);
+  const [formData, setFormData] = useState<VehicleFormData>({
+    plate: "",
+    brand: "",
+    model: "",
+    year: new Date().getFullYear(),
+    color: "",
+    mileage: 0,
+    renavam: "",
+    chassis: "",
+    status: "DISPONIVEL",
+    dailyRate: 0,
+    weeklyRate: 0,
+    monthlyRate: 0,
+  });
+
+  // Estados FIPE
+  const [useFipe, setUseFipe] = useState(true);
+  const [fipeLoading, setFipeLoading] = useState(false);
+  const [fipeError, setFipeError] = useState<string | null>(null);
+
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [models, setModels] = useState<Model[]>([]);
+  const [years, setYears] = useState<ModelYear[]>([]);
+
+  const [selectedBrandCode, setSelectedBrandCode] = useState("");
+  const [selectedModelCode, setSelectedModelCode] = useState("");
+  const [selectedYearCode, setSelectedYearCode] = useState("");
 
   useEffect(() => {
-    const newFormData = initialData
-      ? {
+    if (isOpen) {
+      if (initialData) {
+        setFormData({
           id: initialData.id,
-          placa: initialData.placa,
-          marca: initialData.marca,
-          modelo: initialData.modelo,
-          ano: initialData.ano,
-          cor: initialData.cor || "",
-          quilometragem: initialData.quilometragem || 0,
+          plate: initialData.plate,
+          brand: initialData.brand,
+          model: initialData.model,
+          year: initialData.year,
+          color: initialData.color || "",
+          mileage: initialData.mileage || 0,
           renavam: initialData.renavam || "",
-          chassi: initialData.chassi || "",
+          chassis: initialData.chassis || "",
           status: initialData.status,
-          valorDiaria: initialData.valorDiaria || 0,
-          valorSemanal: initialData.valorSemanal || 0,
-          valorMensal: initialData.valorMensal || 0,
-        }
-      : DEFAULT_FORM_DATA;
+          dailyRate: initialData.dailyRate || 0,
+          weeklyRate: initialData.weeklyRate || 0,
+          monthlyRate: initialData.monthlyRate || 0,
+        });
+        setUseFipe(false);
+      } else {
+        setFormData({
+          plate: "",
+          brand: "",
+          model: "",
+          year: new Date().getFullYear(),
+          color: "",
+          mileage: 0,
+          renavam: "",
+          chassis: "",
+          status: "DISPONIVEL",
+          dailyRate: 0,
+          weeklyRate: 0,
+          monthlyRate: 0,
+        });
+        setUseFipe(true);
+        loadBrands();
+      }
+    }
+  }, [isOpen, initialData]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFormData(newFormData);
-  }, [initialData, isOpen]);
+  const loadBrands = async () => {
+    setFipeLoading(true);
+    setFipeError(null);
+    try {
+      const data = await getBrands("carros");
+      if (data.length === 0) {
+        setFipeError("FIPE indisponível. Preencha manualmente.");
+        setUseFipe(false);
+      } else {
+        setBrands(data);
+      }
+    } catch (error) {
+      setFipeError("Erro ao carregar marcas da FIPE. Preencha manualmente.");
+      setUseFipe(false);
+    } finally {
+      setFipeLoading(false);
+    }
+  };
+
+  const handleBrandChange = async (brandCode: string) => {
+    setSelectedBrandCode(brandCode);
+    const brand = brands.find((b) => b.codigo === brandCode);
+    if (brand) {
+      setFormData((prev) => ({
+        ...prev,
+        brand: brand.nome,
+        model: "",
+        year: new Date().getFullYear(),
+      }));
+      setFipeLoading(true);
+      const data = await getModels("carros", brandCode);
+      setModels(data);
+      setYears([]);
+      setFipeLoading(false);
+    }
+  };
+
+  const handleModelChange = async (modelCode: string) => {
+    setSelectedModelCode(modelCode);
+    const model = models.find((m) => String(m.codigo) === modelCode);
+    if (model) {
+      setFormData((prev) => ({ ...prev, model: model.nome }));
+      setFipeLoading(true);
+      const data = await getYears("carros", selectedBrandCode, modelCode);
+      setYears(data);
+      setFipeLoading(false);
+    }
+  };
+
+  const handleYearChange = async (yearCode: string) => {
+    setSelectedYearCode(yearCode);
+    const year = years.find((y) => y.codigo === yearCode);
+    if (year) {
+      const yearNum = parseInt(year.nome.split("-")[0]);
+      setFormData((prev) => ({ ...prev, year: yearNum }));
+      // NÃO calcula valores - deixa vazio para usuário preencher
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!formData.valorDiaria || !formData.valorSemanal || !formData.valorMensal) {
+    if (!formData.dailyRate || !formData.weeklyRate || !formData.monthlyRate) {
       alert("❌ Todos os valores (Diária, Semanal e Mensal) devem ser preenchidos!");
       return;
     }
-
     await onSubmit(formData);
     onClose();
   };
@@ -121,13 +192,126 @@ export function VehicleFormModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {fipeError && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-yellow-800">{fipeError}</p>
+                <button
+                  type="button"
+                  onClick={() => setUseFipe(false)}
+                  className="mt-1 text-xs text-yellow-700 underline hover:text-yellow-900"
+                >
+                  Continuar preenchendo manualmente
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
+            {useFipe && !initialData ? (
+              <>
+                <div>
+                  <label className={labelClass}>Marca *</label>
+                  <select
+                    value={selectedBrandCode}
+                    onChange={(e) => handleBrandChange(e.target.value)}
+                    className={inputClass}
+                    disabled={fipeLoading}
+                    required
+                  >
+                    <option value="">Selecione a marca</option>
+                    {brands.map((brand) => (
+                      <option key={brand.codigo} value={brand.codigo}>
+                        {brand.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Modelo *</label>
+                  <select
+                    value={selectedModelCode}
+                    onChange={(e) => handleModelChange(e.target.value)}
+                    className={inputClass}
+                    disabled={fipeLoading || !selectedBrandCode}
+                    required
+                  >
+                    <option value="">Selecione o modelo</option>
+                    {models.map((model) => (
+                      <option key={model.codigo} value={model.codigo}>
+                        {model.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Ano *</label>
+                  <select
+                    value={selectedYearCode}
+                    onChange={(e) => handleYearChange(e.target.value)}
+                    className={inputClass}
+                    disabled={fipeLoading || !selectedModelCode}
+                    required
+                  >
+                    <option value="">Selecione o ano</option>
+                    {years.map((year) => (
+                      <option key={year.codigo} value={year.codigo}>
+                        {year.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className={labelClass}>Marca *</label>
+                  <input
+                    type="text"
+                    value={formData.brand}
+                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    className={inputClass}
+                    placeholder="Ex: Toyota, Volkswagen"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Modelo *</label>
+                  <input
+                    type="text"
+                    value={formData.model}
+                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                    className={inputClass}
+                    placeholder="Ex: Corolla, Gol"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Ano *</label>
+                  <input
+                    type="number"
+                    value={formData.year}
+                    onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
+                    className={inputClass}
+                    min="1900"
+                    max={new Date().getFullYear() + 1}
+                    required
+                  />
+                </div>
+              </>
+            )}
+
             <div>
               <label className={labelClass}>Placa *</label>
               <input
                 type="text"
-                value={formData.placa}
-                onChange={(e) => setFormData({ ...formData, placa: e.target.value.toUpperCase() })}
+                value={formData.plate}
+                onChange={(e) => setFormData({ ...formData, plate: e.target.value.toUpperCase() })}
                 className={inputClass}
                 placeholder="ABC-1234"
                 maxLength={8}
@@ -136,47 +320,10 @@ export function VehicleFormModal({
             </div>
 
             <div>
-              <label className={labelClass}>Marca *</label>
-              <input
-                type="text"
-                value={formData.marca}
-                onChange={(e) => setFormData({ ...formData, marca: e.target.value })}
-                className={inputClass}
-                placeholder="Ex: Toyota, Volkswagen"
-                required
-              />
-            </div>
-
-            <div>
-              <label className={labelClass}>Modelo *</label>
-              <input
-                type="text"
-                value={formData.modelo}
-                onChange={(e) => setFormData({ ...formData, modelo: e.target.value })}
-                className={inputClass}
-                placeholder="Ex: Corolla, Gol"
-                required
-              />
-            </div>
-
-            <div>
-              <label className={labelClass}>Ano *</label>
-              <input
-                type="number"
-                value={formData.ano}
-                onChange={(e) => setFormData({ ...formData, ano: Number(e.target.value) })}
-                className={inputClass}
-                min="1900"
-                max={new Date().getFullYear() + 1}
-                required
-              />
-            </div>
-
-            <div>
               <label className={labelClass}>Cor</label>
               <select
-                value={formData.cor}
-                onChange={(e) => setFormData({ ...formData, cor: e.target.value })}
+                value={formData.color}
+                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                 className={inputClass}
               >
                 <option value="">Selecione...</option>
@@ -192,10 +339,8 @@ export function VehicleFormModal({
               <label className={labelClass}>Quilometragem (km) *</label>
               <input
                 type="number"
-                value={formData.quilometragem}
-                onChange={(e) =>
-                  setFormData({ ...formData, quilometragem: Number(e.target.value) })
-                }
+                value={formData.mileage}
+                onChange={(e) => setFormData({ ...formData, mileage: Number(e.target.value) })}
                 className={inputClass}
                 min="0"
                 required
@@ -215,11 +360,13 @@ export function VehicleFormModal({
             </div>
 
             <div>
-              <label className={labelClass}>CHASSI</label>
+              <label className={labelClass}>Chassis</label>
               <input
                 type="text"
-                value={formData.chassi}
-                onChange={(e) => setFormData({ ...formData, chassi: e.target.value.toUpperCase() })}
+                value={formData.chassis}
+                onChange={(e) =>
+                  setFormData({ ...formData, chassis: e.target.value.toUpperCase() })
+                }
                 className={inputClass}
                 placeholder="9BWZZZ377VT004251"
                 maxLength={17}
@@ -230,7 +377,9 @@ export function VehicleFormModal({
               <label className={labelClass}>Status *</label>
               <select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value as VehicleStatus })
+                }
                 className={inputClass}
                 required
               >
@@ -244,8 +393,10 @@ export function VehicleFormModal({
 
           <div className="bg-gradient-to-br from-orange-100 to-orange-50 border-2 border-orange-300 rounded-xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">🔥</span>
-              <p className="text-base font-bold text-orange-900">Valores (Todos obrigatórios) *</p>
+              <span className="text-2xl">💰</span>
+              <p className="text-base font-bold text-orange-900">
+                Valores de Locação (Todos obrigatórios) *
+              </p>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
@@ -254,10 +405,8 @@ export function VehicleFormModal({
                 </label>
                 <input
                   type="number"
-                  value={formData.valorDiaria}
-                  onChange={(e) =>
-                    setFormData({ ...formData, valorDiaria: Number(e.target.value) })
-                  }
+                  value={formData.dailyRate || ""}
+                  onChange={(e) => setFormData({ ...formData, dailyRate: Number(e.target.value) })}
                   className="w-full border-2 border-orange-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all bg-white"
                   min="0"
                   step="0.01"
@@ -271,10 +420,8 @@ export function VehicleFormModal({
                 </label>
                 <input
                   type="number"
-                  value={formData.valorSemanal}
-                  onChange={(e) =>
-                    setFormData({ ...formData, valorSemanal: Number(e.target.value) })
-                  }
+                  value={formData.weeklyRate || ""}
+                  onChange={(e) => setFormData({ ...formData, weeklyRate: Number(e.target.value) })}
                   className="w-full border-2 border-orange-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all bg-white"
                   min="0"
                   step="0.01"
@@ -288,9 +435,9 @@ export function VehicleFormModal({
                 </label>
                 <input
                   type="number"
-                  value={formData.valorMensal}
+                  value={formData.monthlyRate || ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, valorMensal: Number(e.target.value) })
+                    setFormData({ ...formData, monthlyRate: Number(e.target.value) })
                   }
                   className="w-full border-2 border-orange-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all bg-white"
                   min="0"
@@ -300,6 +447,9 @@ export function VehicleFormModal({
                 />
               </div>
             </div>
+            <p className="text-xs text-orange-700 mt-3">
+              💡 Dica: Defina os valores conforme o estado do veículo, demanda e concorrência local.
+            </p>
           </div>
 
           <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
@@ -312,9 +462,10 @@ export function VehicleFormModal({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 font-medium shadow-lg hover:shadow-xl transition-all"
+              disabled={fipeLoading}
+              className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Salvar
+              {fipeLoading ? "Carregando FIPE..." : "Salvar"}
             </button>
           </div>
         </form>

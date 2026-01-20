@@ -29,9 +29,7 @@ export function DriverMigrationModal({
   onConfirm,
   onCancel,
 }: DriverMigrationModalProps) {
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(
-    null
-  );
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,9 +51,7 @@ export function DriverMigrationModal({
       await onConfirm(existingDriver.id, selectedClientId);
       onCancel(); // Fechar modal após sucesso
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao migrar motorista"
-      );
+      setError(err instanceof Error ? err.message : "Erro ao migrar motorista");
     } finally {
       setIsLoading(false);
     }
@@ -83,15 +79,11 @@ export function DriverMigrationModal({
         >
           {/* Header */}
           <div className="mb-4">
-            <h2
-              id="migration-modal-title"
-              className="text-xl font-bold text-gray-900"
-            >
+            <h2 id="migration-modal-title" className="text-xl font-bold text-gray-900">
               ⚠️ Motorista Já Cadastrado
             </h2>
             <p className="text-sm text-gray-600 mt-2">
-              O motorista <strong>{existingDriver.name}</strong> já está
-              cadastrado
+              O motorista <strong>{existingDriver.name}</strong> já está cadastrado
               {existingDriver.clientName ? (
                 <>
                   {" "}
@@ -116,16 +108,12 @@ export function DriverMigrationModal({
             <select
               id="new-client-select"
               value={selectedClientId || ""}
-              onChange={(e) =>
-                setSelectedClientId(e.target.value || null)
-              }
+              onChange={(e) => setSelectedClientId(e.target.value || null)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isLoading}
             >
               <option value="">-- Selecione uma empresa --</option>
-              <option value="__independent__">
-                👤 Motorista Independente (sem vínculo)
-              </option>
+              <option value="__independent__">👤 Motorista Independente (sem vínculo)</option>
               {clients
                 .filter((c) => c.id !== existingDriver.clientId)
                 .map((client) => (

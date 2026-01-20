@@ -43,8 +43,7 @@ export function DriverFormExample() {
 
   // Estados do modal de migração
   const [isMigrationModalOpen, setIsMigrationModalOpen] = useState(false);
-  const [existingDriver, setExistingDriver] =
-    useState<ExistingDriver | null>(null);
+  const [existingDriver, setExistingDriver] = useState<ExistingDriver | null>(null);
 
   // Mock de clientes (substitua por seu hook real)
   const [clients] = useState<Client[]>([
@@ -61,14 +60,11 @@ export function DriverFormExample() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/drivers`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/drivers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
       if (response.status === 409) {
         // 👉 CNH DUPLICADA: Capturar dados do motorista existente
@@ -103,14 +99,10 @@ export function DriverFormExample() {
    * ✅ PASSO 2: Confirmar migração
    * Chama API POST /drivers/:id/migrate
    */
-  const handleMigrationConfirm = async (
-    driverId: string,
-    newClientId: string | null
-  ) => {
+  const handleMigrationConfirm = async (driverId: string, newClientId: string | null) => {
     try {
       // Converter "__independent__" para null
-      const clientIdToSend =
-        newClientId === "__independent__" ? null : newClientId;
+      const clientIdToSend = newClientId === "__independent__" ? null : newClientId;
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/drivers/${driverId}/migrate`,
@@ -118,7 +110,7 @@ export function DriverFormExample() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ newClientId: clientIdToSend }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -152,24 +144,18 @@ export function DriverFormExample() {
         <h2 className="text-2xl font-bold mb-4">Cadastrar Motorista</h2>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Nome Completo
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Nome Completo</label>
           <input
             type="text"
             value={formData.name || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, name: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            CPF
-          </label>
+          <label className="block text-sm font-medium text-gray-700">CPF</label>
           <input
             type="text"
             value={formData.cpf || ""}
@@ -181,29 +167,21 @@ export function DriverFormExample() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Número da CNH
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Número da CNH</label>
           <input
             type="text"
             value={formData.licenseNumber || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, licenseNumber: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Cliente (Empresa)
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Cliente (Empresa)</label>
           <select
             value={formData.clientId || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, clientId: e.target.value || undefined })
-            }
+            onChange={(e) => setFormData({ ...formData, clientId: e.target.value || undefined })}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
           >
             <option value="">-- Nenhum (Independente) --</option>

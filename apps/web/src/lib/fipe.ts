@@ -1,7 +1,7 @@
-// src/lib/fipe.ts - FIPE API Integration (Stub)
-// TODO: Implementar integração com API FIPE real
+import type { VehicleType, VehicleDetails } from "@/types/vehicle";
 
-export type VehicleType = "carros" | "motos" | "caminhoes";
+// FIPE API Base URL
+const FIPE_API_BASE = "https://parallelum.com.br/fipe/api/v1";
 
 export type Brand = {
   codigo: string;
@@ -9,7 +9,7 @@ export type Brand = {
 };
 
 export type Model = {
-  codigo: string;
+  codigo: number;
   nome: string;
 };
 
@@ -18,48 +18,81 @@ export type ModelYear = {
   nome: string;
 };
 
-export type VehicleDetails = {
-  Valor: string;
-  Marca: string;
-  Modelo: string;
-  AnoModelo: number;
-  Combustivel: string;
-  CodigoFipe: string;
-  MesReferencia: string;
-  TipoVeiculo: number;
-  SiglaCombustivel: string;
-};
-
-// Stub functions - retornam arrays vazios por enquanto
-export async function getBrands(_vehicleType: VehicleType): Promise<Brand[]> {
-  // TODO: Implementar chamada real à API FIPE
-  console.warn("FIPE: getBrands not implemented yet");
-  return [];
+function getVehicleTypeEndpoint(vehicleType: VehicleType): string {
+  const map = { carros: "carros", motos: "motos", caminhoes: "caminhoes" };
+  return map[vehicleType] || "carros";
 }
 
-export async function getModels(_vehicleType: VehicleType, _brandCode: string): Promise<Model[]> {
-  // TODO: Implementar chamada real à API FIPE
-  console.warn("FIPE: getModels not implemented yet");
-  return [];
+export async function getBrands(vehicleType: VehicleType): Promise<Brand[]> {
+  try {
+    const endpoint = getVehicleTypeEndpoint(vehicleType);
+    const url = FIPE_API_BASE + "/" + endpoint + "/marcas";
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("FIPE API error");
+    return await response.json();
+  } catch (error) {
+    console.error("FIPE getBrands error:", error);
+    return [];
+  }
+}
+
+export async function getModels(vehicleType: VehicleType, brandCode: string): Promise<Model[]> {
+  try {
+    const endpoint = getVehicleTypeEndpoint(vehicleType);
+    const url = FIPE_API_BASE + "/" + endpoint + "/marcas/" + brandCode + "/modelos";
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("FIPE API error");
+    const data = await response.json();
+    return data.modelos || [];
+  } catch (error) {
+    console.error("FIPE getModels error:", error);
+    return [];
+  }
 }
 
 export async function getYears(
-  _vehicleType: VehicleType,
-  _brandCode: string,
-  _modelCode: string,
+  vehicleType: VehicleType,
+  brandCode: string,
+  modelCode: string,
 ): Promise<ModelYear[]> {
-  // TODO: Implementar chamada real à API FIPE
-  console.warn("FIPE: getYears not implemented yet");
-  return [];
+  try {
+    const endpoint = getVehicleTypeEndpoint(vehicleType);
+    const url =
+      FIPE_API_BASE + "/" + endpoint + "/marcas/" + brandCode + "/modelos/" + modelCode + "/anos";
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("FIPE API error");
+    return await response.json();
+  } catch (error) {
+    console.error("FIPE getYears error:", error);
+    return [];
+  }
 }
 
 export async function getVehicleDetails(
-  _vehicleType: VehicleType,
-  _brandCode: string,
-  _modelCode: string,
-  _yearCode: string,
+  vehicleType: VehicleType,
+  brandCode: string,
+  modelCode: string,
+  yearCode: string,
 ): Promise<VehicleDetails | null> {
-  // TODO: Implementar chamada real à API FIPE
-  console.warn("FIPE: getVehicleDetails not implemented yet");
-  return null;
+  try {
+    const endpoint = getVehicleTypeEndpoint(vehicleType);
+    const url =
+      FIPE_API_BASE +
+      "/" +
+      endpoint +
+      "/marcas/" +
+      brandCode +
+      "/modelos/" +
+      modelCode +
+      "/anos/" +
+      yearCode;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("FIPE API error");
+    return await response.json();
+  } catch (error) {
+    console.error("FIPE getVehicleDetails error:", error);
+    return null;
+  }
 }
+
+export type { VehicleType, VehicleDetails } from "@/types/vehicle";
