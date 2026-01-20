@@ -83,7 +83,9 @@ export class DriversService {
         name: createDriverDto.name,
         cpf: createDriverDto.cpf,
         rg: createDriverDto.rg,
-        birthDate: createDriverDto.birthDate,
+        birthDate: createDriverDto.birthDate
+          ? new Date(createDriverDto.birthDate)
+          : null,
         cellphone: createDriverDto.cellphone,
         telephone: createDriverDto.telephone,
         email: createDriverDto.email,

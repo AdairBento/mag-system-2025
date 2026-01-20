@@ -74,8 +74,13 @@ describe('DriversController (e2e)', () => {
         .send({
           name: 'Test Driver E2E',
           cpf: '11122233344',
+          rg: 'MG1234567',
+          birthDate: '1990-01-01',
           email: 'testdriver@example.com',
           cellphone: '31988887777',
+          licenseNumber: '12345678900',
+          licenseCategory: 'B',
+          licenseExpiry: '2028-12-31',
           status: 'ATIVO',
         })
         .expect(201)

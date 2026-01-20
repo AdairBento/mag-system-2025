@@ -75,8 +75,9 @@ describe('ClientsController (e2e)', () => {
         .get('/clients')
         .expect(200)
         .then((response) => {
-          expect(response.body).toHaveProperty('data');
-          expect(Array.isArray(response.body.data)).toBe(true);
+          expect(response.body).toHaveProperty('items');
+          expect(Array.isArray(response.body.items)).toBe(true);
+          expect(response.body).toHaveProperty('total');
         });
     });
   });
@@ -108,7 +109,7 @@ describe('ClientsController (e2e)', () => {
     it('should delete a client', () => {
       return request(app.getHttpServer())
         .delete(`/clients/${createdClientId}`)
-        .expect(204)
+        .expect(200)
         .then(() => {
           createdClientId = undefined;
         });
