@@ -186,9 +186,11 @@ model Vehicle {
   ipvaExpiry      DateTime?
   insuranceExpiry DateTime?
 
-  // Rental Info
-  dailyRate Float?
-  status    VehicleStatus @default(DISPONIVEL)
+  // Rental Info ✅ ADICIONE ESTAS 2 LINHAS
+  dailyRate   Float?
+  weeklyRate  Float?
+  monthlyRate Float?
+  status      VehicleStatus @default(DISPONIVEL)
 
   // Additional
   notes String? @db.Text
@@ -212,12 +214,13 @@ model Vehicle {
   @@map("vehicles")
 }
 
+
 model Contract {
   id String @id @default(uuid())
 
   // Vinculo com Cliente
-  clientId   String?
-  client     Client?  @relation(fields: [clientId], references: [id])
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
 
   // Dados do Contrato
   contractNumber String    @unique
@@ -255,7 +258,6 @@ model Contract {
   @@index([startDate])
   @@map("contracts")
 }
-
 model Rental {
   id String @id @default(uuid())
 
@@ -328,3 +330,4 @@ enum UserRole {
   MANAGER
   USER
 }
+
