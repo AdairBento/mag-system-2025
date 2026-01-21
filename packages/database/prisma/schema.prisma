@@ -46,6 +46,12 @@ enum ContractStatus {
   SUSPENSO
 }
 
+enum UserRole {
+  ADMIN
+  MANAGER
+  USER
+}
+
 model Client {
   id     String       @id @default(uuid())
   type   ClientType
@@ -144,8 +150,8 @@ model Driver {
   observations String?      @db.Text
 
   // Foreign Key
-  clientId   String?
-  client     Client?  @relation(fields: [clientId], references: [id])
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
 
   // Soft Delete & Audit
   isActive  Boolean   @default(true)
@@ -186,7 +192,7 @@ model Vehicle {
   ipvaExpiry      DateTime?
   insuranceExpiry DateTime?
 
-  // Rental Info ✅ ADICIONE ESTAS 2 LINHAS
+  // Rental Info
   dailyRate   Float?
   weeklyRate  Float?
   monthlyRate Float?
@@ -214,18 +220,15 @@ model Vehicle {
   @@map("vehicles")
 }
 
-
 model Contract {
-  id String @id @default(uuid())
+  id             String  @id @default(uuid())
+  contractNumber String
 
   // Vinculo com Cliente
-  clientId String?
-  client   Client? @relation(fields: [clientId], references: [id])
-
-  // Dados do Contrato
-  contractNumber String    @unique
-  startDate      DateTime
-  endDate        DateTime?
+  clientId  String
+  client    Client @relation(fields: [clientId], references: [id])
+  startDate DateTime
+  endDate   DateTime?
 
   // Termos e Condições
   terms    String? @db.Text
@@ -258,18 +261,19 @@ model Contract {
   @@index([startDate])
   @@map("contracts")
 }
+
 model Rental {
   id String @id @default(uuid())
 
   contractId String?
 
   // Foreign Keys
-  clientId   String?
+  clientId  String?
   driverId  String?
   vehicleId String
 
   // Relations
-  client     Client?  @relation(fields: [clientId], references: [id])
+  client   Client?   @relation(fields: [clientId], references: [id])
   contract Contract? @relation(fields: [contractId], references: [id])
   driver   Driver?   @relation(fields: [driverId], references: [id])
   vehicle  Vehicle   @relation(fields: [vehicleId], references: [id])
@@ -284,12 +288,14 @@ model Rental {
   totalDays  Int
   totalValue Float
   paidValue  Float?
+  discount   Decimal? @default(0) @db.Decimal(10, 2)
 
   // Status
   status RentalStatus @default(RESERVADA)
 
   // Additional
   observations String? @db.Text
+  isActive     Boolean @default(true)
 
   // Soft Delete & Audit
   deletedAt DateTime?
@@ -308,26 +314,20 @@ model Rental {
   @@index([deletedAt])
   @@map("rentals")
 }
+
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  name          String
-  password      String   // bcrypt hash
-  role          UserRole @default(USER)
-  isActive      Boolean  @default(true)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
+  id       String   @id @default(cuid())
+  email    String   @unique
+  name     String
+  password String // bcrypt hash
+  role     UserRole @default(USER)
+  isActive Boolean  @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([email])
   @@index([isActive])
   @@map("users")
 }
-
-enum UserRole {
-  ADMIN
-  MANAGER
-  USER
-}
-

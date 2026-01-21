@@ -15,7 +15,8 @@
     "db:studio": "prisma studio --schema prisma/schema.prisma",
     "prisma:generate": "pnpm run db:generate",
     "prisma:migrate": "pnpm run db:migrate",
-    "prisma:studio": "pnpm run db:studio"
+    "prisma:studio": "pnpm run db:studio",
+    "prebuild": "prisma generate --schema prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "5.22.0"

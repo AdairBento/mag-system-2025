@@ -5,8 +5,9 @@ import { PrismaModule } from './common/prisma/prisma.module';
 import { HealthController } from './health/health.controller';
 import { ClientsModule } from './modules/clients/clients.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { RentalsModule } from './modules/rentals/rentals.module';
 import { DriversModule } from './modules/drivers/drivers.module';
-import { AuthModule } from './modules/auth/auth.module'; // ← ADICIONAR
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { AuthModule } from './modules/auth/auth.module'; // ← ADICIONAR
     }),
     LoggerModule,
     PrismaModule,
-    AuthModule, // ← ADICIONAR
+    AuthModule,
+    RentalsModule,
     ClientsModule,
     VehiclesModule,
     DriversModule,
