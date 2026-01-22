@@ -103,7 +103,11 @@ export function VehicleAutocomplete({
     setStep("year");
     setLoading(true);
     try {
-      const data = await getYears(vehicleType, selectedBrand.codigo, model.codigo);
+      const data = await getYears(
+        vehicleType,
+        selectedBrand.codigo.toString(),
+        model.codigo.toString(),
+      );
       setYears(data);
     } catch {
       setError("Não foi possível carregar anos. Tente novamente.");
@@ -120,7 +124,7 @@ export function VehicleAutocomplete({
       const details = await getVehicleDetails(
         vehicleType,
         selectedBrand.codigo,
-        selectedModel.codigo,
+        selectedModel.codigo.toString(),
         year.codigo,
       );
 

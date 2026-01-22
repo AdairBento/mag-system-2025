@@ -1,64 +1,62 @@
 "use client";
 
-import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Filter, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
-import { RentalFormModal, type RentalFormData } from "./_components/rental-form-modal";
-import { ReturnModal, type ReturnFormData } from "./_components/return-modal";
-import { RentalTable } from "./_components/rental-table";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
-  getRentals,
   createRental,
   updateRental,
   returnRental,
   cancelRental,
+  getRentals,
+  type ListResponse,
   type Rental,
   type RentalFilters,
-  type ListResponse,
 } from "@/lib/api/rentals";
-import { getClients, type Client } from "@/lib/api/clients";
-import { getVehicles, type Vehicle } from "@/lib/api/vehicles";
+import { listClients } from "@/lib/api/clients";
+import { getVehicles } from "@/lib/api/vehicles";
+import { useState } from "react";
 
-function toPayload(v: RentalFormData) {
-  return {
-    clientId: v.clientId,
-    vehicleId: v.vehicleId,
-    startDate: v.startDate,
-    endDate: v.endDate,
-    initialKm: v.initialKm,
-    dailyValue: v.dailyValue,
-    discount: v.discount ?? 0,
-    observations: v.observations ?? "",
-  };
+interface RentalFormData {
+  clientId: string;
+  vehicleId: string;
+  driverId?: string;
+  startDate: string;
+  endDate: string;
+  dailyRate: string;
+  observations?: string;
+}
+
+interface ReturnFormData {
+  returnDate: string;
+  returnKm?: number;
+  returnObservations?: string;
 }
 
 export default function LocacoesPage() {
   const qc = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [editingRental, setEditingRental] = useState<Rental | null>(null);
+  const [returningRental, setReturningRental] = useState<Rental | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const [filters, setFilters] = React.useState<RentalFilters>({
+  const [filters, setFilters] = useState<RentalFilters>({
     status: "ALL",
     search: "",
   });
-  const [page, setPage] = React.useState<number>(1);
 
-  const [formOpen, setFormOpen] = React.useState<boolean>(false);
-  const [returnOpen, setReturnOpen] = React.useState<boolean>(false);
-  const [editing, setEditing] = React.useState<Rental | null>(null);
-  const [returning, setReturning] = React.useState<Rental | null>(null);
-
-  const rentalsQuery = useQuery<ListResponse<Rental>>({
-    queryKey: ["rentals", filters, page],
-    queryFn: () => getRentals(filters, page, 10),
-    staleTime: 10_000,
+  const rentalsQuery = useQuery({
+    queryKey: ["rentals", filters],
+    queryFn: () => getRentals(filters, 1, 100),
   });
 
-  const clientsQuery = useQuery<ListResponse<Client>>({
+  const clientsQuery = useQuery({
     queryKey: ["clients"],
-    queryFn: () => getClients({ type: "ALL", status: "ATIVO" }, 1, 100),
+    queryFn: () => listClients({ type: "ALL", status: "ATIVO" }),
     staleTime: 30_000,
   });
 
-  const vehiclesQuery = useQuery<ListResponse<Vehicle>>({
+  const vehiclesQuery = useQuery({
     queryKey: ["vehicles"],
     queryFn: () => getVehicles({ status: "DISPONIVEL" }, 1, 100),
     staleTime: 30_000,
@@ -69,6 +67,11 @@ export default function LocacoesPage() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["rentals"] });
       await qc.invalidateQueries({ queryKey: ["vehicles"] });
+      toast.success("Locação criada com sucesso!");
+      setIsModalOpen(false);
+    },
+    onError: () => {
+      toast.error("Erro ao criar locação");
     },
   });
 
@@ -77,6 +80,12 @@ export default function LocacoesPage() {
       updateRental(args.id, toPayload(args.data)),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["rentals"] });
+      toast.success("Locação atualizada!");
+      setIsModalOpen(false);
+      setEditingRental(null);
+    },
+    onError: () => {
+      toast.error("Erro ao atualizar locação");
     },
   });
 
@@ -86,6 +95,12 @@ export default function LocacoesPage() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["rentals"] });
       await qc.invalidateQueries({ queryKey: ["vehicles"] });
+      toast.success("Devolução registrada!");
+      setIsReturnModalOpen(false);
+      setReturningRental(null);
+    },
+    onError: () => {
+      toast.error("Erro ao registrar devolução");
     },
   });
 
@@ -94,14 +109,18 @@ export default function LocacoesPage() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["rentals"] });
       await qc.invalidateQueries({ queryKey: ["vehicles"] });
+      toast.success("Locação cancelada!");
+      setDeleteId(null);
+    },
+    onError: () => {
+      toast.error("Erro ao cancelar locação");
     },
   });
 
   const rentals = rentalsQuery.data?.data ?? [];
-  const clients = clientsQuery.data?.data ?? [];
+  const clients = clientsQuery.data ?? [];
   const vehicles = vehiclesQuery.data?.data ?? [];
 
-  // Calcular métricas
   const stats = {
     total: rentals.length,
     active: rentals.filter((r) => r.status === "ATIVA").length,
@@ -109,184 +128,183 @@ export default function LocacoesPage() {
     cancelled: rentals.filter((r) => r.status === "CANCELADA").length,
   };
 
+  function toPayload(data: RentalFormData) {
+    return {
+      clientId: data.clientId,
+      vehicleId: data.vehicleId,
+      driverId: data.driverId || undefined,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      dailyRate: Number(data.dailyRate),
+      observations: data.observations || undefined,
+    };
+  }
+
+  function handleCreate(data: RentalFormData) {
+    createMut.mutate(data);
+  }
+
+  function handleEdit(data: RentalFormData) {
+    if (!editingRental?.id) return;
+    updateMut.mutate({ id: editingRental.id, data });
+  }
+
+  function handleReturn(data: ReturnFormData) {
+    if (!returningRental?.id) return;
+    returnMut.mutate({ id: returningRental.id, data });
+  }
+
+  function handleCancel() {
+    if (!deleteId) return;
+    cancelMut.mutate(deleteId);
+  }
+
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Locações</h1>
-          <p className="text-gray-600 mt-1">Gerencie sua frota de locações</p>
-        </div>
+        <h1 className="text-2xl font-semibold">Locações</h1>
         <button
           onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
+            setEditingRental(null);
+            setIsModalOpen(true);
           }}
-          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 text-white px-5 py-2.5 hover:bg-teal-700 font-medium shadow-lg hover:shadow-xl transition-all"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          <Plus className="w-5 h-5" />
           Nova Locação
         </button>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Total</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
-            </div>
-            <div className="p-3 bg-gray-100 rounded-full">
-              <FileText className="w-7 h-7 text-gray-600" />
-            </div>
-          </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="text-sm text-gray-600">Total</div>
+          <div className="text-2xl font-bold">{stats.total}</div>
         </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Ativas</p>
-              <p className="text-3xl font-bold text-blue-600 mt-1">{stats.active}</p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Clock className="w-7 h-7 text-blue-600" />
-            </div>
-          </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="text-sm text-gray-600">Ativas</div>
+          <div className="text-2xl font-bold text-green-600">{stats.active}</div>
         </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Concluídas</p>
-              <p className="text-3xl font-bold text-green-600 mt-1">{stats.completed}</p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <CheckCircle className="w-7 h-7 text-green-600" />
-            </div>
-          </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="text-sm text-gray-600">Concluídas</div>
+          <div className="text-2xl font-bold text-blue-600">{stats.completed}</div>
         </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Canceladas</p>
-              <p className="text-3xl font-bold text-yellow-600 mt-1">{stats.cancelled}</p>
-            </div>
-            <div className="p-3 bg-yellow-100 rounded-full">
-              <XCircle className="w-7 h-7 text-yellow-600" />
-            </div>
-          </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="text-sm text-gray-600">Canceladas</div>
+          <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar por cliente ou veículo..."
-              value={filters.search ?? ""}
-              onChange={(e) => {
-                setPage(1);
-                setFilters((f) => ({ ...f, search: e.target.value }));
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-gray-400" />
-            <select
-              value={filters.status ?? "ALL"}
-              onChange={(e) => {
-                setPage(1);
-                setFilters((f) => ({ ...f, status: e.target.value as RentalFilters["status"] }));
-              }}
-              className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all"
-            >
-              <option value="ALL">Todos os Status</option>
-              <option value="ATIVA">Ativa</option>
-              <option value="CONCLUIDA">Concluída</option>
-              <option value="CANCELADA">Cancelada</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {rentalsQuery.isError ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          Erro ao carregar locações.
-        </div>
-      ) : null}
-
-      <RentalTable
-        items={rentals}
-        onEdit={(r) => {
-          setEditing(r);
-          setFormOpen(true);
-        }}
-        onReturn={(r) => {
-          setReturning(r);
-          setReturnOpen(true);
-        }}
-        onCancel={(r) => {
-          if (confirm("Cancelar esta locação?")) {
-            cancelMut.mutate(r.id);
-          }
-        }}
-      />
-
-      <div className="flex items-center justify-between px-6 py-4 bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="text-sm text-gray-600 font-medium">Página {page}</div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
+      <div className="bg-white p-4 rounded-lg shadow space-y-4">
+        <h2 className="font-semibold">Filtros</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <select
+            value={filters.status ?? "ALL"}
+            onChange={(e) =>
+              setFilters({ ...filters, status: e.target.value as RentalFilters["status"] })
+            }
+            className="border rounded-md px-3 py-2"
           >
-            ←
-          </button>
-          <button
-            onClick={() => setPage((p) => p + 1)}
-            disabled={!rentalsQuery.data?.meta || page >= (rentalsQuery.data.meta.pages || page)}
-            className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
-          >
-            →
-          </button>
+            <option value="ALL">Todas</option>
+            <option value="ATIVA">Ativas</option>
+            <option value="CONCLUIDA">Concluídas</option>
+            <option value="CANCELADA">Canceladas</option>
+          </select>
+          <input
+            type="text"
+            value={filters.search ?? ""}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            placeholder="Buscar..."
+            className="border rounded-md px-3 py-2"
+          />
         </div>
       </div>
 
-      <RentalFormModal
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        initial={editing}
-        title={editing ? "Editar Locação" : "Nova Locação"}
-        clients={clients}
-        vehicles={vehicles}
-        onSubmit={async (data) => {
-          if (editing) {
-            await updateMut.mutateAsync({ id: editing.id, data });
-          } else {
-            await createMut.mutateAsync(data);
-          }
-          setFormOpen(false);
-        }}
-      />
-
-      <ReturnModal
-        open={returnOpen}
-        onClose={() => setReturnOpen(false)}
-        rental={returning}
-        onSubmit={async (data) => {
-          if (returning) {
-            await returnMut.mutateAsync({ id: returning.id, data });
-            setReturnOpen(false);
-          }
-        }}
-      />
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Cliente
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Veículo
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Período
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Diária
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Status
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                Ações
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {rentals.map((rental) => (
+              <tr key={rental.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {rental.client?.name ?? rental.client?.companyName}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {rental.vehicle?.brand} {rental.vehicle?.model}
+                  <div className="text-xs text-gray-500">{rental.vehicle?.plate}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {new Date(rental.startDate).toLocaleDateString()} -{" "}
+                  {new Date(rental.endDate).toLocaleDateString()}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">R$ {rental.dailyRate.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      rental.status === "ATIVA"
+                        ? "bg-green-100 text-green-800"
+                        : rental.status === "CONCLUIDA"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {rental.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                  {rental.status === "ATIVA" && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setReturningRental(rental);
+                          setIsReturnModalOpen(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Devolver
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingRental(rental);
+                          setIsModalOpen(true);
+                        }}
+                        className="text-indigo-600 hover:text-indigo-900"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(rental.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

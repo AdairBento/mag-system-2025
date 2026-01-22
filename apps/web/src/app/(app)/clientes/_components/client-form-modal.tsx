@@ -16,9 +16,9 @@ type ClientUpsertPayload = {
 
   // PF
   cpf?: string;
-  licenseNumber: string; // ✅ não 'cnh'
-  licenseCategory: string; // ✅ não 'cnhCategory'
-  licenseExpiry: string; // ✅ não 'cnhExpiration'
+  cnh: string;
+  cnhCategory: string;
+  cnhExpiration: string;
 
   // PJ
   cnpj?: string;
@@ -118,7 +118,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
         id: initialData.id ?? "",
         name: initialData.name ?? "",
         email: initialData.email ?? "",
-        telefone: initialData.phone ?? "",
+        telefone: initialData.cellphone ?? "",
 
         cpf,
         cnh: initialData.cnh ?? "",
@@ -126,17 +126,17 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
         cnhValidade: initialData.cnhExpiration ?? "",
 
         cnpj,
-        ie: initialData.ie ?? "",
+        ie: initialData.stateRegistration ?? "",
         responsibleName: initialData.responsibleName ?? "",
         responsiblePhone: initialData.responsiblePhone ?? "",
 
-        cep: initialData.cep ?? "",
-        logradouro: initialData.logradouro ?? "",
-        numero: initialData.numero ?? "",
-        complemento: initialData.complemento ?? "",
-        bairro: initialData.bairro ?? "",
-        cidade: initialData.cidade ?? "",
-        uf: initialData.uf ?? "",
+        cep: initialData.zipCode ?? "",
+        logradouro: initialData.street ?? "",
+        numero: initialData.number ?? "",
+        complemento: initialData.complement ?? "",
+        bairro: initialData.neighborhood ?? "",
+        cidade: initialData.city ?? "",
+        uf: initialData.state ?? "",
       });
     } else {
       setForm(emptyForm);
@@ -232,7 +232,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     setForm({
       ...form,
       id: client.id ?? "",
-      name: client.name ?? client.razaoSocial ?? "",
+      name: client.name ?? client.companyName ?? "",
       email: client.email ?? "",
       telefone: client.cellphone ?? "",
       cpf: client.cpf ?? "",
@@ -240,13 +240,16 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
       cnh: client.cnh ?? "",
       cnhCategory: client.cnhCategory ?? "",
       cnhValidade: client.cnhExpiration ?? "",
-      cep: client.cep ?? "",
-      logradouro: client.logradouro ?? "",
-      numero: client.numero ?? "",
-      complemento: client.complemento ?? "",
-      bairro: client.bairro ?? "",
-      cidade: client.cidade ?? "",
-      uf: client.uf ?? "",
+      ie: client.stateRegistration ?? "",
+      responsibleName: client.responsibleName ?? "",
+      responsiblePhone: client.responsiblePhone ?? "",
+      cep: client.zipCode ?? "",
+      logradouro: client.street ?? "",
+      numero: client.number ?? "",
+      complemento: client.complement ?? "",
+      bairro: client.neighborhood ?? "",
+      cidade: client.city ?? "",
+      uf: client.state ?? "",
     });
     setClientType(client.type);
     setShowSuggestions(false);
@@ -316,9 +319,9 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
           ? {
               ...base,
               cpf: form.cpf.replace(/\D/g, "") || undefined,
-              licenseNumber: form.cnh.trim(), // ✅
-              licenseCategory: form.cnhCategory, // ✅
-              licenseExpiry: form.cnhValidade, // ✅
+              cnh: form.cnh.trim(),
+              cnhCategory: form.cnhCategory,
+              cnhExpiration: form.cnhValidade,
             }
           : {
               ...base,
@@ -326,9 +329,9 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
               stateRegistration: form.ie.trim() || undefined, // ✅
               responsibleName: form.responsibleName.trim(),
               responsiblePhone: form.responsiblePhone.replace(/\D/g, ""),
-              licenseNumber: "", // ✅
-              licenseCategory: "", // ✅
-              licenseExpiry: "", // ✅
+              cnh: "",
+              cnhCategory: "",
+              cnhExpiration: "",
             };
 
       await onSubmit(payload);
@@ -426,10 +429,10 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
                       className="w-full px-4 py-3 text-left hover:bg-teal-50 border-b last:border-b-0 transition-colors"
                     >
                       <div className="font-medium text-gray-900">
-                        {client.name || client.razaoSocial}
+                        {client.name || client.companyName}
                       </div>
                       <div className="text-sm text-gray-600">
-                        {client.cpf || client.cnpj} • {client.cidade}/{client.uf}
+                        {client.cpf || client.cnpj} • {client.city}/{client.state}
                       </div>
                     </button>
                   ))}
