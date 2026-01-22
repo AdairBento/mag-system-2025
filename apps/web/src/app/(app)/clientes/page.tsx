@@ -340,7 +340,7 @@ export default function ClientsPage() {
                     </td>
                   </tr>
                 ) : clients.length ? (
-                  clients.map((c) => (
+                  clients.map((c: Client) => (
                     <tr
                       key={c.id}
                       className="border-t border-slate-100 hover:bg-slate-50 transition-colors"
@@ -482,7 +482,7 @@ export default function ClientsPage() {
                     </td>
                   </tr>
                 ) : drivers.length ? (
-                  drivers.map((d) => (
+                  drivers.map((d: Driver) => (
                     <tr
                       key={d.id}
                       className="border-t border-slate-100 hover:bg-slate-50 transition-colors"
