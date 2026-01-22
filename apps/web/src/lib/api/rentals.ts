@@ -10,7 +10,7 @@ export type Rental = {
   endDate: string;
   initialKm: number;
   finalKm: number | null;
-  dailyValue: number;
+  dailyRate: number;
   discount: number;
   totalValue: number;
   status: RentalStatus;
@@ -21,12 +21,13 @@ export type Rental = {
   client?: {
     id: string;
     name?: string;
-    razaoSocial?: string;
+    companyName?: string;
   };
   vehicle?: {
     id: string;
-    modelo: string;
-    placa: string;
+    plate: string;
+    brand: string;
+    model: string;
   };
 };
 

@@ -11,11 +11,11 @@ type Props = {
 };
 
 function labelClient(r: Rental) {
-  return r.client?.name ?? r.client?.razaoSocial ?? "-";
+  return r.client?.name ?? r.client?.companyName ?? "-";
 }
 
 function labelVehicle(r: Rental) {
-  return `${r.vehicle?.modelo ?? "-"} (${r.vehicle?.placa ?? "-"})`;
+  return `${r.vehicle?.model ?? "-"} (${r.vehicle?.plate ?? "-"})`;
 }
 
 function formatDate(d: string) {

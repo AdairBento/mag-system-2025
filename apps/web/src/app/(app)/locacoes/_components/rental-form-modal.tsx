@@ -13,7 +13,7 @@ const schema = z.object({
   startDate: z.string().min(1, "Data de início obrigatória"),
   endDate: z.string().min(1, "Data de fim obrigatória"),
   initialKm: z.number().min(0, "KM inicial obrigatório"),
-  dailyValue: z.number().min(0, "Valor diário obrigatório"),
+  dailyRate: z.number().min(0, "Valor diário obrigatório"),
   discount: z.number().min(0).default(0),
   observations: z.string().optional(),
 });
@@ -26,8 +26,8 @@ type Props = {
   onSubmit: (data: RentalFormData) => Promise<void> | void;
   initial?: Rental | null;
   title?: string;
-  clients: Array<{ id: string; name?: string; razaoSocial?: string }>;
-  vehicles: Array<{ id: string; modelo: string; placa: string; quilometragem?: number }>;
+  clients: Array<{ id: string; name?: string; companyName?: string }>;
+  vehicles: Array<{ id: string; model: string; plate: string; mileage?: number }>;
 };
 
 const DEFAULTS: RentalFormData = {
@@ -36,7 +36,7 @@ const DEFAULTS: RentalFormData = {
   startDate: "",
   endDate: "",
   initialKm: 0,
-  dailyValue: 0,
+  dailyRate: 0,
   discount: 0,
   observations: "",
 };
@@ -68,7 +68,7 @@ export function RentalFormModal({
       startDate: initial.startDate.split("T")[0],
       endDate: initial.endDate.split("T")[0],
       initialKm: initial.initialKm,
-      dailyValue: initial.dailyValue,
+      dailyRate: initial.dailyRate,
       discount: initial.discount,
       observations: initial.observations ?? "",
     });
@@ -102,7 +102,7 @@ export function RentalFormModal({
                 <option value="">Selecione...</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name ?? c.razaoSocial}
+                    {c.name ?? c.companyName}
                   </option>
                 ))}
               </select>
@@ -120,8 +120,8 @@ export function RentalFormModal({
                 {...form.register("vehicleId", {
                   onChange: (e) => {
                     const vehicle = vehicles.find((v) => v.id === e.target.value);
-                    if (vehicle?.quilometragem) {
-                      form.setValue("initialKm", vehicle.quilometragem);
+                    if (vehicle?.mileage) {
+                      form.setValue("initialKm", vehicle.mileage);
                     }
                   },
                 })}
@@ -129,7 +129,7 @@ export function RentalFormModal({
                 <option value="">Selecione...</option>
                 {vehicles.map((v) => (
                   <option key={v.id} value={v.id}>
-                    {v.modelo} - {v.placa}
+                    {v.model} - {v.plate}
                   </option>
                 ))}
               </select>
@@ -143,7 +143,7 @@ export function RentalFormModal({
 
           {selectedVehicle && (
             <div className="rounded bg-blue-50 p-3 text-sm text-blue-700">
-              KM atual do veículo: {selectedVehicle.quilometragem?.toLocaleString() ?? "N/A"}
+              KM atual do veículo: {selectedVehicle.mileage?.toLocaleString() ?? "N/A"}
             </div>
           )}
 
@@ -183,7 +183,7 @@ export function RentalFormModal({
                 type="number"
                 step="0.01"
                 className="w-full rounded border border-gray-300 p-2"
-                {...form.register("dailyValue", { valueAsNumber: true })}
+                {...form.register("dailyRate", { valueAsNumber: true })}
               />
             </label>
 

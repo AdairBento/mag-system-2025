@@ -36,7 +36,8 @@
       "complement": "Complemento",
       "neighborhood": "Bairro",
       "city": "Cidade",
-      "state": "Estado"
+      "state": "Estado",
+      "companyName": "Razão Social"
     },
     "placeholders": {
       "name": "Digite o nome completo",
@@ -86,6 +87,41 @@
       "cnhExpiry": "Validade CNH",
       "phone": "Telefone",
       "email": "E-mail"
+    }
+  },
+  "rentals": {
+    "title": "Locações",
+    "list": "Lista de Locações",
+    "create": "Nova Locação",
+    "edit": "Editar Locação",
+    "return": "Devolver Veículo",
+    "cancel": "Cancelar Locação",
+    "delete": "Excluir Locação",
+    "confirmDelete": "Tem certeza que deseja excluir esta locação?",
+    "confirmCancel": "Tem certeza que deseja cancelar esta locação?",
+    "fields": {
+      "client": "Cliente",
+      "companyName": "Razão Social",
+      "driver": "Motorista",
+      "vehicle": "Veículo",
+      "plate": "Placa",
+      "brand": "Marca",
+      "model": "Modelo",
+      "mileage": "Quilometragem",
+      "startDate": "Data Início",
+      "endDate": "Data Fim",
+      "initialKm": "KM Inicial",
+      "finalKm": "KM Final",
+      "dailyRate": "Valor Diário",
+      "discount": "Desconto",
+      "totalValue": "Valor Total",
+      "status": "Status",
+      "observations": "Observações"
+    },
+    "status": {
+      "ACTIVE": "Ativa",
+      "COMPLETED": "Finalizada",
+      "CANCELLED": "Cancelada"
     }
   },
   "validation": {

@@ -58,9 +58,9 @@ export function ReturnModal({ open, onClose, onSubmit, rental }: Props) {
         <div className="mb-4 rounded bg-gray-50 p-3 text-sm">
           <div className="mb-2 font-medium">Informações da Locação</div>
           <div className="space-y-1 text-gray-600">
-            <div>Cliente: {rental.client?.name ?? rental.client?.razaoSocial ?? "-"}</div>
+            <div>Cliente: {rental.client?.name ?? rental.client?.companyName ?? "-"}</div>
             <div>
-              Veículo: {rental.vehicle?.modelo ?? "-"} ({rental.vehicle?.placa ?? "-"})
+              Veículo: {rental.vehicle?.model ?? "-"} ({rental.vehicle?.plate ?? "-"})
             </div>
             <div>KM Inicial: {rental.initialKm.toLocaleString()}</div>
           </div>

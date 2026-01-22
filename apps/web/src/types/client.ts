@@ -1,5 +1,5 @@
 // apps/web/src/types/client.ts
-// Tipos compatíveis com a UI atual (campos opcionais para não quebrar modais/tabelas).
+// Types aligned with Prisma schema (English field names)
 
 export type ClientType = "PF" | "PJ";
 export type ClientStatus = "ATIVO" | "INATIVO" | "BLOQUEADO";
@@ -9,42 +9,39 @@ export type Client = {
   id: string;
   type: ClientType;
 
-  // Nome principal (PF ou PJ)
+  // Main name (PF or PJ)
   name: string;
 
-  // Documento unificado (CPF/CNPJ)
+  // Unified document (CPF/CNPJ)
   doc: string;
   cpf?: string | null;
   cnpj?: string | null;
 
-  // PF: CNH + Categoria + Validade
+  // PF: CNH + Category + Expiration
   cnh?: string | null;
   cnhCategory?: CNHCategory | string | null;
-  cnhValidade?: string | null;
-  cnhExpiration?: string | null; // ✅ ADICIONAR (alias para cnhValidade)
+  cnhExpiration?: string | null;
 
-  // PJ
-  razaoSocial?: string | null;
-  nomeFantasia?: string | null;
-  ie?: string | null; // ✅ ADICIONAR (Inscrição Estadual)
-  inscricaoEstadual?: string | null; // ✅ ADICIONAR (alias)
-  responsibleName?: string | null; // ✅ ADICIONAR
-  responsiblePhone?: string | null; // ✅ ADICIONAR
+  // PJ: Company fields
+  companyName?: string | null; // razaoSocial → companyName
+  tradeName?: string | null; // nomeFantasia → tradeName
+  stateRegistration?: string | null; // inscricaoEstadual → stateRegistration
+  responsibleName?: string | null;
+  responsiblePhone?: string | null;
 
-  // Contato
+  // Contact
   phone?: string | null;
   cellphone?: string | null;
   email?: string | null;
 
-  // Endereço
-  cep?: string | null; // ✅ ADICIONAR
-  logradouro?: string | null; // ✅ ADICIONAR
-  numero?: string | null; // ✅ ADICIONAR
-  complemento?: string | null; // ✅ ADICIONAR
-  bairro?: string | null; // ✅ ADICIONAR
-  cidade?: string | null; // ✅ ADICIONAR
-  city?: string | null; // alias
-  uf?: string | null; // ✅ ADICIONAR
+  // Address
+  zipCode?: string | null; // cep → zipCode
+  street?: string | null; // logradouro → street
+  number?: string | null; // numero → number
+  complement?: string | null; // complemento → complement
+  neighborhood?: string | null; // bairro → neighborhood
+  city?: string | null; // cidade → city
+  state?: string | null; // uf → state
 
   status: ClientStatus;
 
@@ -69,32 +66,29 @@ export type CreateClientPayload = {
   cpf?: string | null;
   cnh?: string | null;
   cnhCategory?: CNHCategory | string | null;
-  cnhValidade?: string | null;
   cnhExpiration?: string | null;
 
-  // PJ: CNPJ + Razão Social + Responsável
+  // PJ: CNPJ + Company fields
   cnpj?: string | null;
-  razaoSocial?: string | null;
-  nomeFantasia?: string | null;
-  ie?: string | null;
-  inscricaoEstadual?: string | null;
+  companyName?: string | null;
+  tradeName?: string | null;
+  stateRegistration?: string | null;
   responsibleName?: string | null;
   responsiblePhone?: string | null;
 
-  // Contato
+  // Contact
   phone?: string | null;
   cellphone?: string | null;
   email?: string | null;
 
-  // Endereço
-  cep?: string | null;
-  logradouro?: string | null;
-  numero?: string | null;
-  complemento?: string | null;
-  bairro?: string | null;
-  cidade?: string | null;
+  // Address
+  zipCode?: string | null;
+  street?: string | null;
+  number?: string | null;
+  complement?: string | null;
+  neighborhood?: string | null;
   city?: string | null;
-  uf?: string | null;
+  state?: string | null;
 
   status?: ClientStatus;
 };
