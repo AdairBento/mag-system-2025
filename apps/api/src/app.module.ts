@@ -11,7 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { FinanceiroModule } from './modules/financeiro/financeiro.module';
 import { APP_GUARD, APP_PIPE } from '@nestjs/core';
-import { JwtAuthGuard } from '../../../packages/api/src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { ValidationPipe } from '@nestjs/common';
 
 @Module({
@@ -27,12 +27,10 @@ import { ValidationPipe } from '@nestjs/common';
     ClientsModule,
     VehiclesModule,
     DriversModule,
-        FinanceiroModule,
-          ThrottlerModule.forRoot({
-      ttl: 60,
-      limit: 10,
+    FinanceiroModule,
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60000, limit: 10 }],
     }),
-
   ],
   controllers: [HealthController],
   providers: [
@@ -48,5 +46,6 @@ import { ValidationPipe } from '@nestjs/common';
         transform: true,
       }),
     },
-  ],})
+  ],
+})
 export class AppModule {}

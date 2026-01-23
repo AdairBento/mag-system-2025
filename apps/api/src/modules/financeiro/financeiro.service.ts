@@ -24,10 +24,17 @@ export class FinanceiroService {
   }
 
   async findOne(id: string): Promise<Transacao> {
-    return this.transacaoRepository.findOne({ where: { id } });
+    const transacao = await this.transacaoRepository.findOne({ where: { id } });
+    if (!transacao) {
+      throw new Error('Transação não encontrada');
+    }
+    return transacao;
   }
 
-  async update(id: string, updateTransacaoDto: UpdateTransacaoDto): Promise<Transacao> {
+  async update(
+    id: string,
+    updateTransacaoDto: UpdateTransacaoDto,
+  ): Promise<Transacao> {
     await this.transacaoRepository.update(id, updateTransacaoDto);
     return this.findOne(id);
   }
@@ -43,7 +50,9 @@ export class FinanceiroService {
     });
   }
 
-  async findByStatus(status: 'pendente' | 'pago' | 'recebido'): Promise<Transacao[]> {
+  async findByStatus(
+    status: 'pendente' | 'pago' | 'recebido',
+  ): Promise<Transacao[]> {
     return this.transacaoRepository.find({
       where: { status },
       order: { createdAt: 'DESC' },
