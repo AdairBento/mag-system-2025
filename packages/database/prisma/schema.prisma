@@ -331,6 +331,7 @@ model User {
   @@index([email])
   @@index([isActive])
   @@map("users")
+}
 
 model Transacao {
   id String @id @default(cuid())
