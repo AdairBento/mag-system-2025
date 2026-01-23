@@ -116,6 +116,7 @@ model Client {
   @@index([type])
   @@index([status])
   @@index([licenseNumber])
+  @@index([email])
   @@map("clients")
 }
 
