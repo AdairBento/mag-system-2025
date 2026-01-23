@@ -9,6 +9,7 @@ import { RentalsModule } from './modules/rentals/rentals.module';
 import { DriversModule } from './modules/drivers/drivers.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { FinanceiroModule } from './modules/financeiro/financeiro.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     ClientsModule,
     VehiclesModule,
     DriversModule,
+        FinanceiroModule,
   ],
       ThrottlerModule.forRoot({
       ttl: 60,
