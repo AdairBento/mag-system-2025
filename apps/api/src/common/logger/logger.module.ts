@@ -36,8 +36,12 @@ const transports = [
       provide: 'WINSTON_MODULE_PROVIDER',
       useValue: WinstonModule.createLogger({
         transports,
-        exceptionHandlers: [new winston.transports.File({ filename: 'logs/exceptions.log' })],
-        rejectionHandlers: [new winston.transports.File({ filename: 'logs/rejections.log' })],
+        exceptionHandlers: [
+          new winston.transports.File({ filename: 'logs/exceptions.log' }),
+        ],
+        rejectionHandlers: [
+          new winston.transports.File({ filename: 'logs/rejections.log' }),
+        ],
       }),
     },
   ],

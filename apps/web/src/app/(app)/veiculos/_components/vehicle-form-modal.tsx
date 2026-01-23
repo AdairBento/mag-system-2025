@@ -112,7 +112,7 @@ export function VehicleFormModal({
       } else {
         setBrands(data);
       }
-    } catch (error) {
+    } catch (_error) {
       setFipeError("Erro ao carregar marcas da FIPE. Preencha manualmente.");
       setUseFipe(false);
     } finally {

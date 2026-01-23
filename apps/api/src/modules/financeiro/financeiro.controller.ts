@@ -1,46 +1,57 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { FinanceiroService } from './financeiro.service';
-import { CreateTransacaoDto } from './dto/create-transacao.dto';
-import { UpdateTransacaoDto } from './dto/update-transacao.dto';
 
-@Controller('api/financeiro')
+@Controller('financeiro')
 export class FinanceiroController {
   constructor(private readonly financeiroService: FinanceiroService) {}
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
-  create(@Body() createTransacaoDto: CreateTransacaoDto) {
-    return this.financeiroService.create(createTransacaoDto);
+  async create(@Body() data: any) {
+    return this.financeiroService.createTransacao(data);
   }
 
   @Get()
-  findAll() {
-    return this.financeiroService.findAll();
+  async findAll() {
+    return this.financeiroService.getTransacoes();
+  }
+
+  @Get('resumo')
+  async getResumo() {
+    return this.financeiroService.getResumoFinanceiro();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.financeiroService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return this.financeiroService.getTransacaoById(id);
   }
 
   @Get('tipo/:tipo')
-  findByTipo(@Param('tipo') tipo: 'receita' | 'despesa') {
-    return this.financeiroService.findByTipo(tipo);
+  async findByTipo(@Param('tipo') tipo: string) {
+    const transacoes = await this.financeiroService.getTransacoes();
+    return transacoes.filter((t) => t.tipo === tipo);
   }
 
   @Get('status/:status')
-  findByStatus(@Param('status') status: 'pendente' | 'pago' | 'recebido') {
-    return this.financeiroService.findByStatus(status);
+  async findByStatus(@Param('status') status: string) {
+    const transacoes = await this.financeiroService.getTransacoes();
+    return transacoes.filter((t) => t.status === status);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTransacaoDto: UpdateTransacaoDto) {
-    return this.financeiroService.update(id, updateTransacaoDto);
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() data: any) {
+    return this.financeiroService.updateTransacao(id, data);
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
-    return this.financeiroService.remove(id);
+  async remove(@Param('id') id: string) {
+    return this.financeiroService.deleteTransacao(id);
   }
 }

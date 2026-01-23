@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css}'"
+    "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css}'",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@mag/database": "workspace:*",

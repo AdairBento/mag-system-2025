@@ -1,61 +1,62 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Transacao } from './entities/transacao.entity';
-import { CreateTransacaoDto } from './dto/create-transacao.dto';
-import { UpdateTransacaoDto } from './dto/update-transacao.dto';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class FinanceiroService {
-  constructor(
-    @InjectRepository(Transacao)
-    private readonly transacaoRepository: Repository<Transacao>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(createTransacaoDto: CreateTransacaoDto): Promise<Transacao> {
-    const transacao = this.transacaoRepository.create(createTransacaoDto);
-    return this.transacaoRepository.save(transacao);
-  }
-
-  async findAll(): Promise<Transacao[]> {
-    return this.transacaoRepository.find({
-      order: { createdAt: 'DESC' },
+  async getTransacoes() {
+    return this.prisma.transacao.findMany({
+      orderBy: { data: 'desc' },
     });
   }
 
-  async findOne(id: string): Promise<Transacao> {
-    const transacao = await this.transacaoRepository.findOne({ where: { id } });
+  async getTransacaoById(id: string) {
+    const transacao = await this.prisma.transacao.findUnique({
+      where: { id },
+    });
+
     if (!transacao) {
       throw new Error('Transação não encontrada');
     }
+
     return transacao;
   }
 
-  async update(
-    id: string,
-    updateTransacaoDto: UpdateTransacaoDto,
-  ): Promise<Transacao> {
-    await this.transacaoRepository.update(id, updateTransacaoDto);
-    return this.findOne(id);
-  }
-
-  async remove(id: string): Promise<void> {
-    await this.transacaoRepository.delete(id);
-  }
-
-  async findByTipo(tipo: 'receita' | 'despesa'): Promise<Transacao[]> {
-    return this.transacaoRepository.find({
-      where: { tipo },
-      order: { createdAt: 'DESC' },
+  async createTransacao(data: any) {
+    return this.prisma.transacao.create({
+      data,
     });
   }
 
-  async findByStatus(
-    status: 'pendente' | 'pago' | 'recebido',
-  ): Promise<Transacao[]> {
-    return this.transacaoRepository.find({
-      where: { status },
-      order: { createdAt: 'DESC' },
+  async updateTransacao(id: string, data: any) {
+    return this.prisma.transacao.update({
+      where: { id },
+      data,
     });
+  }
+
+  async deleteTransacao(id: string) {
+    return this.prisma.transacao.delete({
+      where: { id },
+    });
+  }
+
+  async getResumoFinanceiro() {
+    const transacoes = await this.prisma.transacao.findMany();
+
+    const receitas = transacoes
+      .filter((t) => t.tipo === 'RECEITA')
+      .reduce((sum, t) => sum + Number(t.valor), 0);
+
+    const despesas = transacoes
+      .filter((t) => t.tipo === 'DESPESA')
+      .reduce((sum, t) => sum + Number(t.valor), 0);
+
+    return {
+      receitas,
+      despesas,
+      saldo: receitas - despesas,
+    };
   }
 }

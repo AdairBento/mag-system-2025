@@ -1,4 +1,4 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 
 interface HealthResponse {
@@ -15,8 +15,8 @@ export class HealthController {
 
   @Get()
   async getHealth(): Promise<HealthResponse> {
-    const startTime = Date.now();
-    
+    const _startTime = Date.now();
+
     // Test database connection
     let dbConnected = false;
     let dbLatency = 0;
@@ -25,7 +25,7 @@ export class HealthController {
       await this.prisma.$queryRaw`SELECT 1`;
       dbLatency = Date.now() - dbStart;
       dbConnected = true;
-    } catch (error) {
+    } catch (_error) {
       dbConnected = false;
     }
 

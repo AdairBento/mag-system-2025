@@ -18,7 +18,7 @@ import { ValidationPipe } from '@nestjs/common';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env'],
+      envFilePath: ['.env.local', '../../.env', '.env'],
     }),
     LoggerModule,
     PrismaModule,

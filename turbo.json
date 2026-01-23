@@ -8,7 +8,8 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["PORT", "DATABASE_URL", "JWT_SECRET", "JWT_EXPIRES_IN", "NODE_ENV", "CORS_ORIGIN"]
     },
     "lint": {
       "dependsOn": ["^lint"]

@@ -19,7 +19,7 @@ export function useTranslation(locale: string = "pt-BR") {
 
     if (params) {
       return Object.entries(params).reduce<string>(
-        (acc, [_paramKey, paramValue]) => acc.replace("{${paramKey}}", String(paramValue)),
+        (acc, [__paramKey, paramValue]) => acc.replace("{${paramKey}}", String(paramValue)),
         value,
       );
     }

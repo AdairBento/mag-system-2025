@@ -61,6 +61,11 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
+  console.log('DEBUG: process.env.PORT =', process.env.PORT);
+  console.log(
+    'DEBUG: All env vars:',
+    Object.keys(process.env).filter((k) => k.includes('PORT')),
+  );
   const port = process.env.PORT || 3001;
   await app.listen(port);
 

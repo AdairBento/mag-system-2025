@@ -3,7 +3,7 @@
 **Data de Criação:** 23 de Janeiro de 2026  
 **Versão Atual:** 1.0.0 (Fase: Autenticação JWT + Módulos Core)  
 **Stack:** NestJS, Next.js, Prisma, PostgreSQL  
-**Desenvolvedor:** Adair Bento  
+**Desenvolvedor:** Adair Bento
 
 ---
 
@@ -16,6 +16,7 @@ Sistema de gerenciamento de locação de veículos (MAG) implementado com arquit
 ## 📅 Cronologia de Desenvolvimento
 
 ### Fase 1: Fundação & Estrutura (Completado)
+
 - ✅ Setup inicial NestJS + Next.js + Monorepo
 - ✅ Configuração Prisma + PostgreSQL
 - ✅ CI/CD com GitHub Actions
@@ -25,7 +26,8 @@ Sistema de gerenciamento de locação de veículos (MAG) implementado com arquit
 ### Fase 2: Módulos Core (Completado)
 
 #### Backend - Módulos Implementados:
-1. **Clientes Module** 
+
+1. **Clientes Module**
    - Entidade: Cliente, Motorista
    - DTOs: CreateClienteDto, UpdateClienteDto
    - Serviço: CRUD completo + relacionamentos
@@ -59,6 +61,7 @@ Sistema de gerenciamento de locação de veículos (MAG) implementado com arquit
    - Status: ✅ Completo
 
 #### Frontend - Páginas Implementadas:
+
 1. Dashboard - Visão geral do sistema
 2. Clientes - Gerenciamento de clientes (com motoristas)
 3. Motoristas - Página aninhada em Clientes
@@ -72,26 +75,31 @@ Sistema de gerenciamento de locação de veículos (MAG) implementado com arquit
 #### Implementação JWT Completa:
 
 **Backend - Auth Module:**
+
 - ✅ `auth.module.ts` - Configuração com JwtModule
 - ✅ `auth.service.ts` - Métodos login, register, validação
 - ✅ `auth.controller.ts` - Endpoints POST /login e /register
 - ✅ `jwt.strategy.ts` - Estratégia Passport.js para validação
 
 **Guards (Proteção de Rotas):**
+
 - ✅ `jwt-auth.guard.ts` - Guard principal com suporte @Public()
 - ✅ `roles.guard.ts` - Controle de acesso por role
 
 **Decorators (Utilitários):**
+
 - ✅ `@Public()` - Marca rotas como públicas
 - ✅ `@Roles(...roles)` - Define roles necessários
 - ✅ `@CurrentUser()` - Extrai usuário do request
 
 **DTOs com Validação:**
+
 - ✅ `login.dto.ts` - Email + password com class-validator
 - ✅ `register.dto.ts` - Name + email + password com validação
 - Ambos com decoradores Swagger para documentação automática
 
 **Integração Global (app.module.ts):**
+
 - ✅ APP_GUARD registrado globalmente (JwtAuthGuard)
 - ✅ APP_PIPE registrado globalmente (ValidationPipe)
 - ✅ ThrottlerModule movido para imports (correção estrutural)
@@ -99,6 +107,7 @@ Sistema de gerenciamento de locação de veículos (MAG) implementado com arquit
 - ✅ Rotas públicas marcadas com @Public()
 
 **Configurações de Segurança:**
+
 ```typescript
 // ValidationPipe Global
 {
@@ -115,15 +124,18 @@ Sistema de gerenciamento de locação de veículos (MAG) implementado com arquit
 ### Percentual de Conclusão: 95%
 
 ✅ **Completo:**
+
 - Backend: 100% (Auth, Clientes, Veículos, Locações, Motoristas, Financeiro)
 - Frontend: 100% (Dashboard, Clientes, Motoristas, Veículos, Locações, Diagnóstico, Financeiro)
 - Autenticação JWT: 100% (Guards, Decorators, DTOs, Integração Global)
 - Tratamento de Erros: 100% (HttpExceptionFilter, BusinessException)
 
 ⚠️ **Em Progresso:**
+
 - CI/CD: Alguns testes falhando em commits anteriores (investigação necessária)
 
 🔄 **Próximos Passos:**
+
 - Investigar e corrigir falhas de CI
 - Adicionar testes unitários e E2E
 - Swagger documentation completa
@@ -134,6 +146,7 @@ Sistema de gerenciamento de locação de veículos (MAG) implementado com arquit
 ## 📊 Estatísticas do Código
 
 ### Commits Recentes (Branch: development)
+
 - e2511ce: feat(app.module): integrate JWT auth and validation globally
 - 4994c22: feat(auth): add RegisterDto with validation and Swagger decorators
 - 2198315: feat(auth): add LoginDto with validation and Swagger decorators
@@ -143,6 +156,7 @@ Sistema de gerenciamento de locação de veículos (MAG) implementado com arquit
 - More: 54+ commits históricos
 
 ### Estrutura de Diretórios
+
 ```
 MAG-system-webapp/
 ├── apps/api/                          # Backend NestJS
@@ -211,6 +225,7 @@ Subsequentes Requests
 ## 🚀 Como Usar Localmente
 
 ### Clonar Repositório
+
 ```bash
 git clone https://github.com/AdairBento/MAG-system-webapp.git
 cd MAG-system-webapp
@@ -218,11 +233,13 @@ git checkout development
 ```
 
 ### Instalar Dependências
+
 ```bash
 npm install
 ```
 
 ### Configurar Banco de Dados
+
 ```bash
 cp .env.example .env
 # Edite .env com suas credenciais PostgreSQL
@@ -230,11 +247,13 @@ npx prisma migrate dev
 ```
 
 ### Executar Localmente
+
 ```bash
 npm run dev      # Backend + Frontend em dev
 ```
 
 ### Testar Autenticação
+
 ```bash
 # POST http://localhost:3001/auth/register
 {
@@ -263,18 +282,21 @@ npm run dev      # Backend + Frontend em dev
 ## 📝 Notas Importantes
 
 ### Estrutura de Motoristas
+
 - Motoristas estão implementados como subnível de Clientes
 - Arquivo criado: `packages/web/src/app/clientes/motoristas/page.tsx`
 - Controlador: `apps/api/src/modules/drivers/drivers.controller.ts`
 - Rota: `/api/clientes/{clienteId}/motoristas`
 
 ### Financeiro Module
+
 - Modelo de transações com tipos: RECEITA, DESPESA, AJUSTE
 - Integrado em app.module.ts
 - DTOs com validação de tipo e valor
 - Serviço com cálculos de balanço
 
 ### Configuração de Segurança Global
+
 - JwtAuthGuard aplicado a TODAS as rotas por padrão
 - Apenas rotas marcadas com @Public() são acessíveis sem token
 - ValidationPipe valida automaticamente todos os DTOs
@@ -284,6 +306,7 @@ npm run dev      # Backend + Frontend em dev
 ## 🐛 Problemas Conhecidos & Soluções
 
 ### CI Pipeline Issues
+
 - Alguns commits anteriores falhando em testes
 - **Solução:** Investigar logs do GitHub Actions e corrigir Prisma generate
 

@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('transacoes')
 export class Transacao {
@@ -23,7 +29,11 @@ export class Transacao {
   @Column()
   metodo: string;
 
-  @Column({ type: 'varchar', enum: ['pendente', 'pago', 'recebido'], default: 'pendente' })
+  @Column({
+    type: 'varchar',
+    enum: ['pendente', 'pago', 'recebido'],
+    default: 'pendente',
+  })
   status: 'pendente' | 'pago' | 'recebido';
 
   @Column({ nullable: true })
