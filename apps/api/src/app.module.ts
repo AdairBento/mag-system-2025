@@ -8,6 +8,7 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
 import { RentalsModule } from './modules/rentals/rentals.module';
 import { DriversModule } from './modules/drivers/drivers.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -23,6 +24,10 @@ import { AuthModule } from './modules/auth/auth.module';
     VehiclesModule,
     DriversModule,
   ],
+      ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 10,
+    }),
   controllers: [HealthController],
   providers: [],
 })
