@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
+import helmet from 'helmet';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -10,6 +12,8 @@ async function bootstrap() {
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
   });
+   app.use(helmet());
+   app.useGlobalGuards(new ThrottlerGuard());
 
   app.useGlobalPipes(
     new ValidationPipe({
