@@ -331,4 +331,25 @@ model User {
   @@index([email])
   @@index([isActive])
   @@map("users")
+
+model Transacao {
+  id String @id @default(cuid())
+  tipo String // 'receita' | 'despesa'
+  descricao String
+  valor Decimal @db.Decimal(10, 2)
+  data DateTime
+  categoria String
+  metodo String
+  status String @default("pendente") // 'pendente' | 'pago' | 'recebido'
+  referencia String?
+  observacoes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([tipo])
+  @@index([data])
+  @@map("transacoes")
+}
 }
