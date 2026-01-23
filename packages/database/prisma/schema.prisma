@@ -108,7 +108,7 @@ model Client {
   @@unique([email, deletedAt], name: "unique_email_active")
   @@unique([cpf, deletedAt], name: "unique_cpf_active")
   @@unique([cnpj, deletedAt], name: "unique_cnpj_active")
-  @@index([email])
+  @@index([email], name: "client_email_idx")
   @@index([cpf])
   @@index([cnpj])
   @@index([deletedAt])
@@ -116,7 +116,7 @@ model Client {
   @@index([type])
   @@index([status])
   @@index([licenseNumber])
-  @@index([email])
+  @@index([email], name: "driver_email_idx")
   @@map("clients")
 }
 
