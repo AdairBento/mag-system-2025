@@ -1,310 +1,251 @@
-"use client";
+'use client';
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-  createRental,
-  updateRental,
-  returnRental,
-  cancelRental,
-  getRentals,
-  type ListResponse,
-  type Rental,
-  type RentalFilters,
-} from "@/lib/api/rentals";
-import { listClients } from "@/lib/api/clients";
-import { getVehicles } from "@/lib/api/vehicles";
-import { useState } from "react";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Modal from '@/components/ui/Modal';
+import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
 
-interface RentalFormData {
-  clientId: string;
-  vehicleId: string;
-  driverId?: string;
-  startDate: string;
-  endDate: string;
-  dailyRate: string;
-  observations?: string;
+interface Locacao {
+  id: string;
+  clienteId: string;
+  veiculo: string;
+  motorista: string;
+  dataInicio: string;
+  dataFim: string;
+  dataFimReal?: string;
+  quilometragemInicial: number;
+  quilometragemFinal?: number;
+  valorDiario: number;
+  valorTotal: number;
+  status: 'ativa' | 'finalizada' | 'cancelada';
+  observacoes?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface ReturnFormData {
-  returnDate: string;
-  returnKm?: number;
-  returnObservations?: string;
+interface FormData {
+  clienteId: string;
+  veiculo: string;
+  motorista: string;
+  dataInicio: string;
+  dataFim: string;
+  quilometragemInicial: number;
+  valorDiario: number;
+  observacoes: string;
 }
 
 export default function LocacoesPage() {
-  const qc = useQueryClient();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
-  const [editingRental, setEditingRental] = useState<Rental | null>(null);
-  const [returningRental, setReturningRental] = useState<Rental | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  const [filters, setFilters] = useState<RentalFilters>({
-    status: "ALL",
-    search: "",
+  const router = useRouter();
+  const [locacoes, setLocacoes] = useState<Locacao[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'todas' | 'ativa' | 'finalizada' | 'cancelada'>('todas');
+  const [formData, setFormData] = useState<FormData>({
+    clienteId: '',
+    veiculo: '',
+    motorista: '',
+    dataInicio: '',
+    dataFim: '',
+    quilometragemInicial: 0,
+    valorDiario: 0,
+    observacoes: '',
   });
 
-  const rentalsQuery = useQuery({
-    queryKey: ["rentals", filters],
-    queryFn: () => getRentals(filters, 1, 100),
-  });
+  useEffect(() => {
+    fetchLocacoes();
+  }, []);
 
-  const clientsQuery = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => listClients({ type: "ALL", status: "ATIVO" }),
-    staleTime: 30_000,
-  });
-
-  const vehiclesQuery = useQuery({
-    queryKey: ["vehicles"],
-    queryFn: () => getVehicles({ status: "DISPONIVEL" }, 1, 100),
-    staleTime: 30_000,
-  });
-
-  const createMut = useMutation({
-    mutationFn: async (data: RentalFormData) => createRental(toPayload(data)),
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["rentals"] });
-      await qc.invalidateQueries({ queryKey: ["vehicles"] });
-      toast.success("Locação criada com sucesso!");
-      setIsModalOpen(false);
-    },
-    onError: () => {
-      toast.error("Erro ao criar locação");
-    },
-  });
-
-  const updateMut = useMutation({
-    mutationFn: async (args: { id: string; data: RentalFormData }) =>
-      updateRental(args.id, toPayload(args.data)),
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["rentals"] });
-      toast.success("Locação atualizada!");
-      setIsModalOpen(false);
-      setEditingRental(null);
-    },
-    onError: () => {
-      toast.error("Erro ao atualizar locação");
-    },
-  });
-
-  const returnMut = useMutation({
-    mutationFn: async (args: { id: string; data: ReturnFormData }) =>
-      returnRental(args.id, args.data),
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["rentals"] });
-      await qc.invalidateQueries({ queryKey: ["vehicles"] });
-      toast.success("Devolução registrada!");
-      setIsReturnModalOpen(false);
-      setReturningRental(null);
-    },
-    onError: () => {
-      toast.error("Erro ao registrar devolução");
-    },
-  });
-
-  const cancelMut = useMutation({
-    mutationFn: async (id: string) => cancelRental(id),
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["rentals"] });
-      await qc.invalidateQueries({ queryKey: ["vehicles"] });
-      toast.success("Locação cancelada!");
-      setDeleteId(null);
-    },
-    onError: () => {
-      toast.error("Erro ao cancelar locação");
-    },
-  });
-
-  const rentals = rentalsQuery.data?.data ?? [];
-  const clients = clientsQuery.data ?? [];
-  const vehicles = vehiclesQuery.data?.data ?? [];
-
-  const stats = {
-    total: rentals.length,
-    active: rentals.filter((r) => r.status === "ATIVA").length,
-    completed: rentals.filter((r) => r.status === "CONCLUIDA").length,
-    cancelled: rentals.filter((r) => r.status === "CANCELADA").length,
+  const fetchLocacoes = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/locacoes');
+      if (!response.ok) throw new Error('Falha ao carregar locacoes');
+      const data = await response.json();
+      setLocacoes(data);
+    } catch (error) {
+      console.error('Erro:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  function toPayload(data: RentalFormData) {
-    return {
-      clientId: data.clientId,
-      vehicleId: data.vehicleId,
-      driverId: data.driverId || undefined,
-      startDate: data.startDate,
-      endDate: data.endDate,
-      dailyRate: Number(data.dailyRate),
-      observations: data.observations || undefined,
-    };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: name === 'quilometragemInicial' || name === 'valorDiario' ? parseFloat(value) : value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const method = editingId ? 'PUT' : 'POST';
+      const url = editingId ? `/api/locacoes/${editingId}` : '/api/locacoes';
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error('Falha ao salvar');
+      setIsFormOpen(false);
+      setEditingId(null);
+      setFormData({
+        clienteId: '',
+        veiculo: '',
+        motorista: '',
+        dataInicio: '',
+        dataFim: '',
+        quilometragemInicial: 0,
+        valorDiario: 0,
+        observacoes: '',
+      });
+      await fetchLocacoes();
+    } catch (error) {
+      console.error('Erro:', error);
+    }
+  };
+
+  const handleEdit = (locacao: Locacao) => {
+    setEditingId(locacao.id);
+    setFormData({
+      clienteId: locacao.clienteId,
+      veiculo: locacao.veiculo,
+      motorista: locacao.motorista,
+      dataInicio: locacao.dataInicio,
+      dataFim: locacao.dataFim,
+      quilometragemInicial: locacao.quilometragemInicial,
+      valorDiario: locacao.valorDiario,
+      observacoes: locacao.observacoes || '',
+    });
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza?')) return;
+    try {
+      const response = await fetch(`/api/locacoes/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Falha ao deletar');
+      await fetchLocacoes();
+    } catch (error) {
+      console.error('Erro:', error);
+    }
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingId(null);
+    setFormData({
+      clienteId: '',
+      veiculo: '',
+      motorista: '',
+      dataInicio: '',
+      dataFim: '',
+      quilometragemInicial: 0,
+      valorDiario: 0,
+      observacoes: '',
+    });
+  };
+
+  const filteredLocacoes = locacoes.filter(l => {
+    const matchesSearch = l.veiculo.toLowerCase().includes(searchTerm.toLowerCase()) || l.motorista.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'todas' || l.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>;
   }
 
-  function handleCreate(data: RentalFormData) {
-    createMut.mutate(data);
-  }
-
-  function handleEdit(data: RentalFormData) {
-    if (!editingRental?.id) return;
-    updateMut.mutate({ id: editingRental.id, data });
-  }
-
-  function handleReturn(data: ReturnFormData) {
-    if (!returningRental?.id) return;
-    returnMut.mutate({ id: returningRental.id, data });
-  }
-
-  function handleCancel() {
-    if (!deleteId) return;
-    cancelMut.mutate(deleteId);
-  }
+  const calcularDias = (dataInicio: string, dataFim: string) => {
+    const inicio = new Date(dataInicio);
+    const fim = new Date(dataFim);
+    return Math.ceil((fim.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24));
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Locações</h1>
-        <button
-          onClick={() => {
-            setEditingRental(null);
-            setIsModalOpen(true);
-          }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Nova Locação
-        </button>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Locacoes</h1>
+          <p className="text-gray-400">Gerenciamento de locacoes</p>
+        </div>
+        <Button onClick={() => setIsFormOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg">
+          Nova Locacao
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Total</div>
-          <div className="text-2xl font-bold">{stats.total}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Ativas</div>
-          <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Concluídas</div>
-          <div className="text-2xl font-bold text-blue-600">{stats.completed}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Canceladas</div>
-          <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
-        </div>
+      <div className="flex gap-4 flex-wrap">
+        <Input type="text" placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 min-w-[300px]" />
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)} className="px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600">
+          <option value="todas">Todos os Status</option>
+          <option value="ativa">Ativas</option>
+          <option value="finalizada">Finalizadas</option>
+          <option value="cancelada">Canceladas</option>
+        </select>
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow space-y-4">
-        <h2 className="font-semibold">Filtros</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <select
-            value={filters.status ?? "ALL"}
-            onChange={(e) =>
-              setFilters({ ...filters, status: e.target.value as RentalFilters["status"] })
-            }
-            className="border rounded-md px-3 py-2"
-          >
-            <option value="ALL">Todas</option>
-            <option value="ATIVA">Ativas</option>
-            <option value="CONCLUIDA">Concluídas</option>
-            <option value="CANCELADA">Canceladas</option>
-          </select>
-          <input
-            type="text"
-            value={filters.search ?? ""}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            placeholder="Buscar..."
-            className="border rounded-md px-3 py-2"
-          />
-        </div>
+      <div className="grid gap-4">
+        {filteredLocacoes.length === 0 ? (
+          <Card className="p-8 text-center">
+            <p className="text-gray-400">Nenhuma locacao encontrada</p>
+          </Card>
+        ) : (
+          filteredLocacoes.map(locacao => (
+            <Card key={locacao.id} className="p-6 hover:bg-gray-800 transition">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-xl font-semibold text-white">{locacao.veiculo}</h3>
+                    <Badge className={locacao.status === 'ativa' ? 'bg-emerald-600 text-white' : locacao.status === 'finalizada' ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'}>
+                      {locacao.status}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-400">
+                    <div>Motorista: {locacao.motorista}</div>
+                    <div>Cliente: {locacao.clienteId}</div>
+                    <div>Data Inicio: {new Date(locacao.dataInicio).toLocaleDateString()}</div>
+                    <div>Data Fim: {new Date(locacao.dataFim).toLocaleDateString()}</div>
+                    <div>Quilometragem: {locacao.quilometragemInicial} km</div>
+                    <div>Valor Diario: R$ {locacao.valorDiario.toFixed(2)}</div>
+                    <div>Valor Total: R$ {locacao.valorTotal.toFixed(2)}</div>
+                    <div>Dias: {calcularDias(locacao.dataInicio, locacao.dataFim)}</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={() => handleEdit(locacao)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                    Editar
+                  </Button>
+                  <Button onClick={() => handleDelete(locacao.id)} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+                    Deletar
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Cliente
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Veículo
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Período
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Diária
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Ações
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {rentals.map((rental) => (
-              <tr key={rental.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {rental.client?.name ?? rental.client?.companyName}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {rental.vehicle?.brand} {rental.vehicle?.model}
-                  <div className="text-xs text-gray-500">{rental.vehicle?.plate}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {new Date(rental.startDate).toLocaleDateString()} -{" "}
-                  {new Date(rental.endDate).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">R$ {rental.dailyRate.toFixed(2)}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      rental.status === "ATIVA"
-                        ? "bg-green-100 text-green-800"
-                        : rental.status === "CONCLUIDA"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {rental.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                  {rental.status === "ATIVA" && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setReturningRental(rental);
-                          setIsReturnModalOpen(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        Devolver
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingRental(rental);
-                          setIsModalOpen(true);
-                        }}
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => setDeleteId(rental.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Cancelar
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Modal isOpen={isFormOpen} onClose={handleCloseForm} title={editingId ? 'Editar' : 'Nova'}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Input type="text" name="clienteId" placeholder="Cliente" value={formData.clienteId} onChange={handleInputChange} required />
+            <Input type="text" name="veiculo" placeholder="Veiculo" value={formData.veiculo} onChange={handleInputChange} required />
+            <Input type="text" name="motorista" placeholder="Motorista" value={formData.motorista} onChange={handleInputChange} required />
+            <Input type="date" name="dataInicio" value={formData.dataInicio} onChange={handleInputChange} required />
+            <Input type="date" name="dataFim" value={formData.dataFim} onChange={handleInputChange} required />
+            <Input type="number" name="quilometragemInicial" placeholder="KM Inicial" value={formData.quilometragemInicial} onChange={handleInputChange} required />
+            <Input type="number" step="0.01" name="valorDiario" placeholder="Valor" value={formData.valorDiario} onChange={handleInputChange} required />
+          </div>
+          <textarea name="observacoes" placeholder="Obs" value={formData.observacoes} onChange={handleInputChange as any} className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600" rows={3} />
+          <div className="flex gap-4 justify-end">
+            <Button onClick={handleCloseForm} className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600">Cancelar</Button>
+            <Button type="submit" className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700">Salvar</Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
