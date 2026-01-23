@@ -12,12 +12,20 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src",
     "build": "tsc -p tsconfig.json",
-    "lint:fix": "eslint src --fix"
+    "lint:fix": "eslint src --fix",
+    "test": "jest --config jest.config.cjs",
+    "test:watch": "jest --config jest.config.cjs --watch"
   },
   "exports": {
     ".": {
       "default": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
+  },
+  "devDependencies": {
+    "@types/jest": "30.0.0",
+    "@types/node": "25.0.10",
+    "jest": "30.2.0",
+    "ts-jest": "29.4.6"
   }
 }
