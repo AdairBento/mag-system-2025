@@ -1,0 +1,31 @@
+
+> mag-system-webapp@ lint C:\Users\adair\PycharmProject\MAG-system-webapp
+> pnpm -r lint
+
+Scope: 4 of 5 workspace projects
+packages/database lint$ eslint src
+packages/shared lint$ eslint src
+packages/shared lint: Done
+packages/database lint: Done
+apps/api lint$ eslint src --ext .ts,.tsx,.js,.jsx
+apps/web lint$ eslint .
+apps/api lint: Done
+apps/web lint: C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\jest.config.cjs
+apps/web lint:   1:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+apps/web lint: C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\src\__tests__\example.test.tsx
+apps/web lint:   1:10  warning  'render' is defined but never used  @typescript-eslint/no-unused-vars
+apps/web lint:   1:18  warning  'screen' is defined but never used  @typescript-eslint/no-unused-vars
+apps/web lint: C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\src\app\(app)\locacoes\page.tsx
+apps/web lint:   41:9  warning  '_router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+apps/web lint: C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\src\app\(app)\veiculos\_components\vehicle-form-modal.tsx
+apps/web lint:   115:14  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+apps/web lint: C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\src\hooks\useTranslation.ts
+apps/web lint:   22:16  warning  '__paramKey' is defined but never used  @typescript-eslint/no-unused-vars
+apps/web lint: C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web\src\lib\api\vehicles.ts
+apps/web lint:   1:24  warning  'VehicleStatus' is defined but never used  @typescript-eslint/no-unused-vars
+apps/web lint: Ô£û 7 problems (1 error, 6 warnings)
+apps/web lint: Failed
+C:\Users\adair\PycharmProject\MAG-system-webapp\apps\web:
+ÔÇëERR_PNPM_RECURSIVE_RUN_FIRST_FAILÔÇë @mag/web@0.1.0 lint: `eslint .`
+Exit status 1
+ÔÇëELIFECYCLEÔÇë Command failed with exit code 1.

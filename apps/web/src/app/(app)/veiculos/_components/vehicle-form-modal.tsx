@@ -42,7 +42,7 @@ export function VehicleFormModal({
     mileage: 0,
     renavam: "",
     chassis: "",
-    status: "DISPONIVEL",
+    status: "disponivel",
     dailyRate: 0,
     weeklyRate: 0,
     monthlyRate: 0,
@@ -90,7 +90,7 @@ export function VehicleFormModal({
           mileage: 0,
           renavam: "",
           chassis: "",
-          status: "DISPONIVEL",
+          status: "disponivel",
           dailyRate: 0,
           weeklyRate: 0,
           monthlyRate: 0,
@@ -112,7 +112,7 @@ export function VehicleFormModal({
       } else {
         setBrands(data);
       }
-    } catch (_error) {
+    } catch {
       setFipeError("Erro ao carregar marcas da FIPE. Preencha manualmente.");
       setUseFipe(false);
     } finally {
@@ -383,10 +383,10 @@ export function VehicleFormModal({
                 className={inputClass}
                 required
               >
-                <option value="DISPONIVEL">Disponível</option>
-                <option value="LOCADO">Locado</option>
-                <option value="MANUTENCAO">Manutenção</option>
-                <option value="INATIVO">Inativo</option>
+                <option value="disponivel">Disponível</option>
+                <option value="alugado">Locado</option>
+                <option value="manutencao">Manutenção</option>
+                <option value="inativo">Inativo</option>
               </select>
             </div>
           </div>

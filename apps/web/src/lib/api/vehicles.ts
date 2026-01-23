@@ -1,31 +1,54 @@
-import type { Vehicle, VehicleStatus, VehicleFilters } from "@/types/vehicle";
 import { api } from "./http";
+import type { Vehicle, VehicleFilters } from "@/types/vehicle";
 
-export type ListResponse<T> = {
-  data: T[];
-  meta: { total: number; page: number; limit: number; pages: number };
-};
+export type { Vehicle, VehicleFilters };
 
-export async function getVehicles(filters: VehicleFilters, page = 1, limit = 10) {
-  const qs = new URLSearchParams();
-  if (filters.search) qs.set("search", filters.search);
-  if (filters.status && filters.status !== "ALL") qs.set("status", filters.status);
-  qs.set("page", String(page));
-  qs.set("limit", String(limit));
-  return api<ListResponse<Vehicle>>("/vehicles?" + qs.toString());
+export interface VehicleListResponse {
+  data: Vehicle[];
+  meta: {
+    total: number;
+    page: number;
+    perPage: number;
+  };
 }
 
-export async function createVehicle(payload: unknown) {
-  return api<Vehicle>("/vehicles", { method: "POST", body: JSON.stringify(payload) });
+export async function getVehicles(filters?: VehicleFilters): Promise<VehicleListResponse> {
+  const params = new URLSearchParams();
+
+  if (filters?.status) {
+    params.append("status", filters.status);
+  }
+
+  if (filters?.plate) {
+    params.append("plate", filters.plate);
+  }
+
+  const queryString = params.toString();
+  const url = queryString ? `vehicles?${queryString}` : "vehicles";
+
+  return api<VehicleListResponse>(url);
 }
 
-export async function updateVehicle(id: string, payload: unknown) {
-  return api<Vehicle>("/vehicles/" + id, { method: "PATCH", body: JSON.stringify(payload) });
+export async function getVehicle(id: string): Promise<Vehicle> {
+  return api<Vehicle>(`vehicles/${id}`);
 }
 
-export async function deleteVehicle(id: string) {
-  return api<void>("/vehicles/" + id, { method: "DELETE" });
+export async function createVehicle(data: Partial<Vehicle>): Promise<Vehicle> {
+  return api<Vehicle>("vehicles", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
-// Re-export types from centralized location
-export type { Vehicle, VehicleStatus, VehicleFilters } from "@/types/vehicle";
+export async function updateVehicle(id: string, data: Partial<Vehicle>): Promise<Vehicle> {
+  return api<Vehicle>(`vehicles/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteVehicle(id: string): Promise<void> {
+  await api<void>(`vehicles/${id}`, {
+    method: "DELETE",
+  });
+}

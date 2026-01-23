@@ -132,7 +132,7 @@ export function VehicleAutocomplete({
         onSelect({
           brand: details.Marca,
           model: details.Modelo,
-          year: details.AnoModelo,
+          year: parseInt(details.AnoModelo, 10),
           fuelType: details.Combustivel,
           fipeCode: details.CodigoFipe,
           price: details.Valor,

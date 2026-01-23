@@ -1,31 +1,19 @@
-import { i18nConfig } from "@/i18n/config";
+import translations from "@/i18n/locales/pt-BR.json";
 
-type TranslationKey = string;
+type TranslationKey = keyof typeof translations;
 
-export function useTranslation(locale: string = "pt-BR") {
-  const translations = i18nConfig.translations[locale as keyof typeof i18nConfig.translations];
-
+export function useTranslation() {
   const t = (key: TranslationKey, params?: Record<string, string | number>): string => {
-    const keys = key.split(".");
-    let value: Record<string, unknown> = translations;
-
-    for (const k of keys) {
-      value = ((value as Record<string, unknown>)?.[k] ?? {}) as Record<string, unknown>;
-    }
-
-    if (typeof value !== "string") {
-      return key;
-    }
+    let translation = String(translations[key]);
 
     if (params) {
-      return Object.entries(params).reduce<string>(
-        (acc, [__paramKey, paramValue]) => acc.replace("{${paramKey}}", String(paramValue)),
-        value,
-      );
+      Object.entries(params).forEach(([paramKey, value]) => {
+        translation = translation.replace(new RegExp(`{${paramKey}}`, "g"), String(value));
+      });
     }
 
-    return value;
+    return translation;
   };
 
-  return { t, locale };
+  return { t };
 }

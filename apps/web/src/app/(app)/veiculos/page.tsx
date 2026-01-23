@@ -11,7 +11,7 @@ import {
   updateVehicle,
   deleteVehicle,
   type Vehicle,
-  type ListResponse,
+  type VehicleListResponse,
 } from "@/lib/api/vehicles";
 
 const statusColors = {
@@ -23,9 +23,9 @@ const statusColors = {
 
 const statusLabels = {
   DISPONIVEL: "Disponível",
-  LOCADO: "Locado",
+  LOCADO: "alugado",
   MANUTENCAO: "Manutenção",
-  INATIVO: "Inativo",
+  INATIVO: "inativo",
 };
 
 export default function VeiculosPage() {
@@ -41,9 +41,9 @@ export default function VeiculosPage() {
     data: response,
     isLoading,
     isError,
-  } = useQuery<ListResponse<Vehicle>>({
+  } = useQuery({
     queryKey: ["vehicles"],
-    queryFn: () => getVehicles({ search: "", status: "ALL" }, 1, 100),
+    queryFn: () => getVehicles(),
   });
 
   const deleteMut = useMutation({
@@ -86,12 +86,12 @@ export default function VeiculosPage() {
 
     if (!vehicle) return;
 
-    if (vehicle.status === "LOCADO") {
+    if (vehicle.status === "alugado") {
       toast.error("❌ Este veículo está LOCADO e não pode ser excluído! Finalize a locação antes.");
       return;
     }
 
-    if (vehicle.status === "MANUTENCAO") {
+    if (vehicle.status === "manutencao") {
       const confirmMaintenance = confirm(
         "⚠️ Este veículo está em MANUTENÇÃO.\n\nTem certeza que deseja excluir?",
       );
@@ -121,9 +121,9 @@ export default function VeiculosPage() {
 
   const stats = {
     total: vehicles.length,
-    disponivel: vehicles.filter((v: Vehicle) => v.status === "DISPONIVEL").length,
-    locado: vehicles.filter((v: Vehicle) => v.status === "LOCADO").length,
-    manutencao: vehicles.filter((v: Vehicle) => v.status === "MANUTENCAO").length,
+    disponivel: vehicles.filter((v: Vehicle) => v.status === "disponivel").length,
+    locado: vehicles.filter((v: Vehicle) => v.status === "alugado").length,
+    manutencao: vehicles.filter((v: Vehicle) => v.status === "manutencao").length,
   };
 
   const handleSubmit = async (data: VehicleFormData) => {
@@ -242,10 +242,10 @@ export default function VeiculosPage() {
               className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all"
             >
               <option value="ALL">Todos os Status</option>
-              <option value="DISPONIVEL">Disponível</option>
-              <option value="LOCADO">Locado</option>
-              <option value="MANUTENCAO">Manutenção</option>
-              <option value="INATIVO">Inativo</option>
+              <option value="disponivel">Disponível</option>
+              <option value="alugado">Locado</option>
+              <option value="manutencao">Manutenção</option>
+              <option value="inativo">Inativo</option>
             </select>
           </div>
         </div>

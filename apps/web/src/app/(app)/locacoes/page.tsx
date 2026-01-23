@@ -38,7 +38,7 @@ interface FormData {
 }
 
 export default function LocacoesPage() {
-  const _router = useRouter();
+  // const router = useRouter();
   const [locacoes, setLocacoes] = useState<Locacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -203,7 +203,9 @@ export default function LocacoesPage() {
         />
         <select
           value={filterStatus}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterStatus(e.target.value)}
+          onChange={(e) =>
+            setFilterStatus(e.target.value as "todas" | "ativa" | "finalizada" | "cancelada")
+          }
           className="px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600"
         >
           <option value="todas">Todos os Status</option>

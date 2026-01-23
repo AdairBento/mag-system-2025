@@ -1,28 +1,32 @@
-// apps/web/src/types/vehicle.ts
+export type VehicleStatus = "disponivel" | "alugado" | "manutencao" | "inativo";
 
-// ===== ENTIDADES (nomes retornados pela API) =====
-export type VehicleStatus = "DISPONIVEL" | "LOCADO" | "MANUTENCAO" | "INATIVO";
-
-export type Vehicle = {
+export interface Vehicle {
   id: string;
-  plate: string; // API: plate
-  brand: string; // API: brand
-  model: string; // API: model
-  year: number; // API: year
-  color?: string; // API: color
-  mileage?: number; // API: mileage
+  plate: string;
+  brand: string;
+  model: string;
+  year: number;
+  color?: string;
+  mileage?: number;
   renavam?: string;
   chassis?: string;
   status: VehicleStatus;
-  dailyRate?: number; // API: dailyRate
+  dailyRate?: number;
   weeklyRate?: number;
   monthlyRate?: number;
+  clienteId?: string;
   createdAt: string;
   updatedAt: string;
-};
+}
 
-// ===== PAYLOADS (enviar para API) =====
-export type VehicleFormData = {
+export interface VehicleFilters {
+  status?: string;
+  plate?: string;
+  brand?: string;
+  model?: string;
+}
+
+export interface VehicleFormData {
   id?: string;
   plate: string;
   brand: string;
@@ -36,23 +40,22 @@ export type VehicleFormData = {
   dailyRate?: number;
   weeklyRate?: number;
   monthlyRate?: number;
-};
+}
 
-export type VehicleFilters = {
-  search?: string;
-  status?: VehicleStatus | "ALL";
-};
-
-// ===== FIPE =====
 export type VehicleType = "carros" | "motos" | "caminhoes";
 
-export type VehicleDetails = {
-  Valor: string;
+export interface VehicleDetails {
   Marca: string;
   Modelo: string;
-  AnoModelo: number;
+  AnoModelo: string;
   Combustivel: string;
   CodigoFipe: string;
+  Valor: string;
   MesReferencia: string;
-  SiglaCombustivel: string;
-};
+  marca: string;
+  modelo: string;
+  ano: string;
+  combustivel: string;
+  codigoFipe: string;
+  valor: string;
+}

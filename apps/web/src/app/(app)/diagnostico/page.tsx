@@ -189,7 +189,9 @@ export default function DiagnosticoPage() {
         />
         <select
           value={filterStatus}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterStatus(e.target.value)}
+          onChange={(e) =>
+            setFilterStatus(e.target.value as "todos" | "pendente" | "em_andamento" | "concluida")
+          }
           className="px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600"
         >
           <option value="todos">Todos Status</option>
