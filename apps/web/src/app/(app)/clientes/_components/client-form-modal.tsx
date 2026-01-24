@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Save, X } from "lucide-react";
 import { maskCPF, maskCNPJ, maskPhone } from "@/utils/masks";
 import { toast } from "sonner";
@@ -105,11 +105,24 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [suggestions, setSuggestions] = useState<Client[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  // ✅ Controla se já inicializou os dados ao abrir o modal
+  const hasInitialized = useRef(false);
 
+  // ✅ useEffect só roda quando o modal ABRE ou quando initialData muda
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      // Quando fechar, reseta o flag
+      hasInitialized.current = false;
+      return;
+    }
+
+    // Só inicializa UMA VEZ ao abrir
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
 
     if (initialData) {
+      console.log("📄 Carregando dados para edição:", initialData);
       setClientType(initialData.type ?? "PF");
       setForm({
         id: initialData.id ?? "",
@@ -136,6 +149,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
         uf: initialData.state ?? "",
       });
     } else {
+      console.log("🆕 Criando novo cliente");
       setForm(emptyForm);
       setClientType("PF");
     }
@@ -332,6 +346,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
               responsiblePhone: form.responsiblePhone.replace(/\D/g, ""),
             };
 
+      console.log("📤 Enviando payload:", payload);
       await onSubmit(payload);
 
       toast.success(
@@ -344,6 +359,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
 
       onClose();
     } catch (err: unknown) {
+      console.error("❌ Erro ao salvar:", err);
       const message = getErrorMessage(err);
       toast.error("Erro ao salvar cliente", {
         description: message,
