@@ -11,7 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { FinanceiroModule } from './modules/financeiro/financeiro.module';
 import { APP_GUARD, APP_PIPE } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { ValidationPipe } from '@nestjs/common';
 
 @Module({

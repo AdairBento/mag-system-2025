@@ -13,12 +13,14 @@ import { AuthGuard } from './guards/auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from '@prisma/client';
 import { UserEntity } from './entities/user.entity';
+import { Public } from './decorators/public.decorator'; // ← ADICIONAR
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Public() // ← ADICIONAR
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({
@@ -34,6 +36,7 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
+  @Public() // ← ADICIONAR
   @Post('login')
   @ApiOperation({ summary: 'User login' })
   @ApiResponse({
