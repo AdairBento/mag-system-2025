@@ -23,6 +23,12 @@
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
-    "strict": false
+    "strict": false,
+    "paths": {
+      "@mag/shared": ["../../packages/shared/dist/index.d.ts"],
+      "@mag/shared/*": ["../../packages/shared/dist/*"],
+      "@mag/database": ["../../packages/database/dist/index.d.ts"],
+      "@mag/database/*": ["../../packages/database/dist/*"]
+    }
   }
 }
