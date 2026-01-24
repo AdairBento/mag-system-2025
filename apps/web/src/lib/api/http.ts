@@ -11,6 +11,11 @@ function getBaseUrl(): string {
   return envUrl && envUrl.trim() ? envUrl.trim() : "http://localhost:3001";
 }
 
+function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("auth_token");
+}
+
 async function parseBody(res: Response): Promise<unknown> {
   const text = await res.text();
   if (!text) return null;
@@ -23,12 +28,15 @@ async function parseBody(res: Response): Promise<unknown> {
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const baseUrl = getBaseUrl();
-  const url = `${baseUrl}${path}`;
+  const url = `${baseUrl}/${path}`;
+
+  const token = getAuthToken();
 
   const res = await fetch(url, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers ?? {}),
     },
   });

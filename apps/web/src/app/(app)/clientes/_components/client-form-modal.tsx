@@ -12,28 +12,28 @@ type ClientUpsertPayload = {
   type: ClientType;
   name: string;
   email: string;
-  cellphone: string; // ✅ 'cellphone' não 'phone'
+  cellphone: string;
 
-  // PF
+  // PF - CNH em INGLÊS
   cpf?: string;
-  cnh: string;
-  cnhCategory: string;
-  cnhExpiration: string;
+  licenseNumber?: string;
+  licenseCategory?: string;
+  licenseExpiry?: string;
 
   // PJ
   cnpj?: string;
-  stateRegistration?: string; // ✅ não 'ie'
+  stateRegistration?: string;
   responsibleName?: string;
   responsiblePhone?: string;
 
   // Endereço em INGLÊS
-  zipCode: string; // ✅ não 'cep'
-  street: string; // ✅ não 'logradouro'
-  number: string; // ✅ não 'numero'
-  complement?: string; // ✅ não 'complemento'
-  neighborhood: string; // ✅ não 'bairro'
-  city: string; // ✅ não 'cidade'
-  state: string; // ✅ não 'uf'
+  zipCode: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
 
   status: "ATIVO";
 };
@@ -121,9 +121,9 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
         telefone: initialData.cellphone ?? "",
 
         cpf,
-        cnh: initialData.cnh ?? "",
-        cnhCategory: initialData.cnhCategory ?? "",
-        cnhValidade: initialData.cnhExpiration ?? "",
+        cnh: initialData.licenseNumber ?? "",
+        cnhCategory: initialData.licenseCategory ?? "",
+        cnhValidade: initialData.licenseExpiry ?? "",
 
         cnpj,
         ie: initialData.stateRegistration ?? "",
@@ -237,9 +237,9 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
       telefone: client.cellphone ?? "",
       cpf: client.cpf ?? "",
       cnpj: client.cnpj ?? "",
-      cnh: client.cnh ?? "",
-      cnhCategory: client.cnhCategory ?? "",
-      cnhValidade: client.cnhExpiration ?? "",
+      cnh: client.licenseNumber ?? "",
+      cnhCategory: client.licenseCategory ?? "",
+      cnhValidade: client.licenseExpiry ?? "",
       ie: client.stateRegistration ?? "",
       responsibleName: client.responsibleName ?? "",
       responsiblePhone: client.responsiblePhone ?? "",
@@ -300,16 +300,16 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
         type: clientType,
         name: form.name.trim(),
         email: form.email.trim(),
-        cellphone: form.telefone.replace(/\D/g, ""), // ✅
+        cellphone: form.telefone.replace(/\D/g, ""),
 
         // Endereço em INGLÊS
-        zipCode: form.cep.replace(/\D/g, ""), // ✅
-        street: form.logradouro.trim(), // ✅
-        number: form.numero.trim(), // ✅
-        complement: form.complemento.trim() || undefined, // ✅
-        neighborhood: form.bairro.trim(), // ✅
-        city: form.cidade.trim(), // ✅
-        state: form.uf.toUpperCase().trim(), // ✅
+        zipCode: form.cep.replace(/\D/g, ""),
+        street: form.logradouro.trim(),
+        number: form.numero.trim(),
+        complement: form.complemento.trim() || undefined,
+        neighborhood: form.bairro.trim(),
+        city: form.cidade.trim(),
+        state: form.uf.toUpperCase().trim(),
 
         status: "ATIVO" as const,
       };
@@ -319,19 +319,18 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
           ? {
               ...base,
               cpf: form.cpf.replace(/\D/g, "") || undefined,
-              cnh: form.cnh.trim(),
-              cnhCategory: form.cnhCategory,
-              cnhExpiration: form.cnhValidade,
+              // ✅ CNH EM INGLÊS
+              licenseNumber: form.cnh.trim(),
+              licenseCategory: form.cnhCategory,
+              licenseExpiry: form.cnhValidade,
             }
           : {
               ...base,
               cnpj: form.cnpj.replace(/\D/g, "") || undefined,
-              stateRegistration: form.ie.trim() || undefined, // ✅
+              stateRegistration: form.ie.trim() || undefined,
               responsibleName: form.responsibleName.trim(),
               responsiblePhone: form.responsiblePhone.replace(/\D/g, ""),
-              cnh: "",
-              cnhCategory: "",
-              cnhExpiration: "",
+              // ✅ PJ NÃO TEM CNH - removido!
             };
 
       await onSubmit(payload);

@@ -29,23 +29,23 @@ function toQuery(filters?: ClientFilters): string {
 }
 
 export async function listClients(filters?: ClientFilters): Promise<Client[]> {
-  return api<Client[]>(`/clients${toQuery(filters)}`);
+  return api<Client[]>(`clients${toQuery(filters)}`);
 }
 
 export async function getClient(id: string): Promise<Client> {
-  return api<Client>(`/clients/${id}`);
+  return api<Client>(`clients/${id}`);
 }
 
 export async function createClient(payload: CreateClientPayload): Promise<Client> {
-  return api<Client>(`/clients`, { method: "POST", body: JSON.stringify(payload) });
+  return api<Client>(`clients`, { method: "POST", body: JSON.stringify(payload) });
 }
 
 export async function updateClient(id: string, payload: UpdateClientPayload): Promise<Client> {
-  return api<Client>(`/clients/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
+  return api<Client>(`clients/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
 }
 
 export async function deleteClient(id: string): Promise<{ ok: true }> {
-  return api<{ ok: true }>(`/clients/${id}`, { method: "DELETE" });
+  return api<{ ok: true }>(`clients/${id}`, { method: "DELETE" });
 }
 
 // Aliases para UI legada
@@ -62,6 +62,7 @@ export async function getClients(
   const data = await listClients(filters);
   return { data };
 }
+
 export async function searchClients(query: string): Promise<Client[]> {
-  return api<Client[]>(`/clients/search?q=${encodeURIComponent(query)}`);
+  return api<Client[]>(`clients/search?q=${encodeURIComponent(query)}`);
 }

@@ -17,15 +17,15 @@ export type Client = {
   cpf?: string | null;
   cnpj?: string | null;
 
-  // PF: CNH + Category + Expiration
-  cnh?: string | null;
-  cnhCategory?: CNHCategory | string | null;
-  cnhExpiration?: string | null;
+  // ✅ PF: Driver License (INGLÊS - padrão backend)
+  licenseNumber?: string | null;
+  licenseCategory?: CNHCategory | string | null;
+  licenseExpiry?: string | null;
 
   // PJ: Company fields
-  companyName?: string | null; // razaoSocial → companyName
-  tradeName?: string | null; // nomeFantasia → tradeName
-  stateRegistration?: string | null; // inscricaoEstadual → stateRegistration
+  companyName?: string | null;
+  tradeName?: string | null;
+  stateRegistration?: string | null;
   responsibleName?: string | null;
   responsiblePhone?: string | null;
 
@@ -35,13 +35,13 @@ export type Client = {
   email?: string | null;
 
   // Address
-  zipCode?: string | null; // cep → zipCode
-  street?: string | null; // logradouro → street
-  number?: string | null; // numero → number
-  complement?: string | null; // complemento → complement
-  neighborhood?: string | null; // bairro → neighborhood
-  city?: string | null; // cidade → city
-  state?: string | null; // uf → state
+  zipCode?: string | null;
+  street?: string | null;
+  number?: string | null;
+  complement?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
 
   status: ClientStatus;
 
@@ -62,11 +62,11 @@ export type CreateClientPayload = {
   name: string;
   doc: string;
 
-  // PF: CPF + CNH
+  // ✅ PF: CPF + Driver License (INGLÊS)
   cpf?: string | null;
-  cnh?: string | null;
-  cnhCategory?: CNHCategory | string | null;
-  cnhExpiration?: string | null;
+  licenseNumber?: string | null;
+  licenseCategory?: CNHCategory | string | null;
+  licenseExpiry?: string | null;
 
   // PJ: CNPJ + Company fields
   cnpj?: string | null;

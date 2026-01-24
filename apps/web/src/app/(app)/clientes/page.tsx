@@ -29,6 +29,16 @@ import type { ClientUpsertPayload } from "@/types/forms";
 
 type Tab = "clients" | "drivers";
 
+type ApiError = {
+  details?: {
+    message?: string;
+  };
+  message?: string;
+  response?: {
+    status?: number;
+  };
+};
+
 export default function ClientsPage() {
   const queryClient = useQueryClient();
 
@@ -65,7 +75,7 @@ export default function ClientsPage() {
       params.set("limit", String(pageSize));
 
       const data = await apiClient.get<{ items: Client[]; total: number }>(
-        "/clients?" + params.toString(),
+        "clients?" + params.toString(),
       );
       return data;
     },
@@ -80,7 +90,7 @@ export default function ClientsPage() {
       params.set("limit", String(pageSize));
 
       const data = await apiClient.get<{ items: Driver[]; total: number }>(
-        "/drivers?" + params.toString(),
+        "drivers?" + params.toString(),
       );
       return data;
     },
@@ -103,42 +113,46 @@ export default function ClientsPage() {
   // mutations
   const saveClient = useMutation({
     mutationFn: async (payload: ClientUpsertPayload) => {
-      const dto = {
+      const dto: Record<string, string | undefined> = {
         type: payload.type,
         status: payload.status,
-
-        // PF
-        name: payload.type === "PF" ? payload.name : undefined,
-        cpf: payload.type === "PF" ? payload.cpf : undefined,
-
-        // PJ
-        razaoSocial: payload.type === "PJ" ? payload.name : undefined,
-        cnpj: payload.type === "PJ" ? payload.cnpj : undefined,
-        inscricaoEstadual: payload.type === "PJ" ? payload.stateRegistration : undefined,
-
-        // Contato
-        cellphone: payload.cellphone,
-        email: payload.email,
-
-        // CNH
-        cnhNumero: payload.licenseNumber,
-        cnhCategoria: payload.licenseCategory,
-        cnhValidade: payload.licenseExpiry,
-
-        // Endereço
-        cep: payload.zipCode,
-        logradouro: payload.street,
-        numero: payload.number,
-        complemento: payload.complement,
-        bairro: payload.neighborhood,
-        cidade: payload.city,
-        estado: payload.state,
       };
 
-      if (payload.id) {
-        return apiClient.patch<Client>(`/clients/${payload.id}`, dto);
+      // ✅ PF
+      if (payload.type === "PF") {
+        dto.name = payload.name;
+        dto.cpf = payload.cpf;
       }
-      return apiClient.post<Client>("/clients", dto);
+
+      // ✅ PJ
+      if (payload.type === "PJ") {
+        dto.razaoSocial = payload.name;
+        dto.cnpj = payload.cnpj;
+        if (payload.stateRegistration) dto.inscricaoEstadual = payload.stateRegistration;
+      }
+
+      // ✅ Contato (apenas se tiver valor)
+      if (payload.cellphone) dto.cellphone = payload.cellphone;
+      if (payload.email) dto.email = payload.email;
+
+      // ✅ CNH (apenas se tiver valor)
+      if (payload.licenseNumber) dto.cnhNumero = payload.licenseNumber;
+      if (payload.licenseCategory) dto.cnhCategoria = payload.licenseCategory;
+      if (payload.licenseExpiry) dto.cnhValidade = payload.licenseExpiry;
+
+      // ✅ Endereço (apenas se tiver valor)
+      if (payload.zipCode) dto.cep = payload.zipCode;
+      if (payload.street) dto.logradouro = payload.street;
+      if (payload.number) dto.numero = payload.number;
+      if (payload.complement) dto.complemento = payload.complement;
+      if (payload.neighborhood) dto.bairro = payload.neighborhood;
+      if (payload.city) dto.cidade = payload.city;
+      if (payload.state) dto.estado = payload.state;
+
+      if (payload.id) {
+        return apiClient.patch<Client>(`clients/${payload.id}`, dto);
+      }
+      return apiClient.post<Client>("clients", dto);
     },
     onSuccess: () => {
       toast.success("Cliente salvo com sucesso!");
@@ -146,16 +160,25 @@ export default function ClientsPage() {
       setEditingClient(null);
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: () => toast.error("Erro ao salvar cliente"),
+    onError: (error: unknown) => {
+      const apiError = error as ApiError;
+      const message = apiError?.details?.message || apiError?.message || "Erro ao salvar cliente";
+      toast.error(message);
+      console.error("Erro ao salvar cliente:", error);
+    },
   });
 
   const deleteClient = useMutation({
-    mutationFn: async (id: string) => apiClient.delete("/clients/" + id),
+    mutationFn: async (id: string) => apiClient.delete("clients/" + id),
     onSuccess: () => {
       toast.success("Cliente removido!");
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: () => toast.error("Erro ao remover cliente"),
+    onError: (error: unknown) => {
+      const apiError = error as ApiError;
+      const message = apiError?.details?.message || apiError?.message || "Erro ao remover cliente";
+      toast.error(message);
+    },
   });
 
   const saveDriver = useMutation({
@@ -165,14 +188,14 @@ export default function ClientsPage() {
 
       // migração: se editar e mudar clientId
       if (isUpdate && editingDriver?.clientId && payload.clientId !== editingDriver.clientId) {
-        return apiClient.post(`/drivers/${driverId}/migrate`, { newClientId: payload.clientId });
+        return apiClient.post(`drivers/${driverId}/migrate`, { newClientId: payload.clientId });
       }
 
       if (isUpdate) {
         const { id, ...body } = payload;
-        return apiClient.patch<Driver>("/drivers/" + id, body);
+        return apiClient.patch<Driver>("drivers/" + id, body);
       }
-      return apiClient.post<Driver>("/drivers", payload);
+      return apiClient.post<Driver>("drivers", payload);
     },
     onSuccess: () => {
       toast.success("Motorista salvo com sucesso!");
@@ -181,23 +204,28 @@ export default function ClientsPage() {
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
     },
     onError: (err: unknown) => {
-      // ✅ Deixar erro 409 passar para o modal tratar
-      const error = err as { response?: { status?: number } };
+      const error = err as ApiError;
       if (error?.response?.status === 409) {
         console.log("🔄 Erro 409 - Modal vai tratar migração");
         return;
       }
-      toast.error("Erro ao salvar motorista");
+      const message = error?.details?.message || error?.message || "Erro ao salvar motorista";
+      toast.error(message);
     },
   });
 
   const deleteDriver = useMutation({
-    mutationFn: async (id: string) => apiClient.delete("/drivers/" + id),
+    mutationFn: async (id: string) => apiClient.delete("drivers/" + id),
     onSuccess: () => {
       toast.success("Motorista removido!");
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
     },
-    onError: () => toast.error("Erro ao remover motorista"),
+    onError: (error: unknown) => {
+      const apiError = error as ApiError;
+      const message =
+        apiError?.details?.message || apiError?.message || "Erro ao remover motorista";
+      toast.error(message);
+    },
   });
 
   const openNewClient = () => {
@@ -561,11 +589,9 @@ export default function ClientsPage() {
               setEditingDriver(null);
             }}
             onSubmit={async (payload: Driver) => {
-              // ✅ Usar mutateAsync para propagar o erro 409 ao modal
               try {
                 await saveDriver.mutateAsync(payload);
               } catch (error) {
-                // ✅ Repassar erro para o modal tratar
                 throw error;
               }
             }}
