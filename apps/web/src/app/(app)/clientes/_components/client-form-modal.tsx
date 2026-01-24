@@ -109,10 +109,10 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
   // ✅ Controla se já inicializou os dados ao abrir o modal
   const hasInitialized = useRef(false);
 
-  // ✅ useEffect só roda quando o modal ABRE ou quando initialData muda
+  // ✅ LÓGICA CORRIGIDA - Só inicializa UMA VEZ ao abrir
   useEffect(() => {
     if (!isOpen) {
-      // Quando fechar, reseta o flag
+      // Quando fechar, reseta o flag para permitir nova inicialização
       hasInitialized.current = false;
       return;
     }
@@ -217,7 +217,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     if (upper.includes("D")) return "D";
     if (upper.includes("E")) return "E";
 
-    return ""; // ✅ Retorna vazio ao invés de "AB"
+    return "";
   };
 
   const handleNameSearch = async (value: string) => {
@@ -285,7 +285,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
 
     if (clientType === "PF") {
       if (!form.cpf.replace(/\D/g, "")) return false;
-      // ✅ CNH só é obrigatória se já foi preenchida ou está criando
       const hasCnh = form.cnh.trim().length > 0;
       if (hasCnh) {
         if (!form.cnhCategory.trim()) return false;
@@ -308,7 +307,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     setLoading(true);
 
     try {
-      // 🔄 MAPEAMENTO PT → EN (PROFISSIONAL)
       const base = {
         id: form.id || undefined,
         type: clientType,
@@ -316,7 +314,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
         email: form.email.trim(),
         cellphone: form.telefone.replace(/\D/g, ""),
 
-        // Endereço em INGLÊS
         zipCode: form.cep.replace(/\D/g, ""),
         street: form.logradouro.trim(),
         number: form.numero.trim(),
@@ -333,7 +330,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
           ? {
               ...base,
               cpf: form.cpf.replace(/\D/g, "") || undefined,
-              // ✅ CNH EM INGLÊS - apenas se preenchido
               licenseNumber: form.cnh.trim() || undefined,
               licenseCategory: form.cnhCategory.trim() || undefined,
               licenseExpiry: form.cnhValidade || undefined,
@@ -357,6 +353,10 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
         },
       );
 
+      // ✅ Só reseta DEPOIS de salvar com sucesso
+      setForm(emptyForm);
+      setClientType("PF");
+      hasInitialized.current = false;
       onClose();
     } catch (err: unknown) {
       console.error("❌ Erro ao salvar:", err);
@@ -370,6 +370,16 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     }
   };
 
+  // ✅ Função de fechar que reseta tudo
+  const handleClose = () => {
+    setForm(emptyForm);
+    setClientType("PF");
+    setSuggestions([]);
+    setShowSuggestions(false);
+    hasInitialized.current = false;
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -377,7 +387,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4 flex justify-between items-center">
           <h2 className="text-xl font-bold text-white">{title}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded transition-colors">
+          <button onClick={handleClose} className="p-1 hover:bg-white/20 rounded transition-colors">
             <X size={24} className="text-white" />
           </button>
         </div>
@@ -512,7 +522,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
                     onChange={(e) => {
                       const value = e.target.value;
                       setField("cnh", value);
-                      // ✅ Só detecta se tiver valor
                       if (value.trim()) {
                         const auto = autoDetectCnhCategory(value);
                         if (auto) setField("cnhCategory", auto);
@@ -734,7 +743,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
           <div className="flex gap-4 justify-end pt-4 border-t">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={loading}
               className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50"
             >
