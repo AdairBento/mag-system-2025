@@ -25,10 +25,10 @@
     "noImplicitAny": false,
     "strict": false,
     "paths": {
-      "@mag/shared": ["../../packages/shared/dist/index.d.ts"],
-      "@mag/shared/*": ["../../packages/shared/dist/*"],
-      "@mag/database": ["../../packages/database/dist/index.d.ts"],
-      "@mag/database/*": ["../../packages/database/dist/*"]
+      "@mag/shared": ["../../packages/shared/src"],
+      "@mag/shared/*": ["../../packages/shared/src/*"],
+      "@mag/database": ["../../packages/database/src"],
+      "@mag/database/*": ["../../packages/database/src/*"]
     }
   }
 }
