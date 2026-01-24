@@ -124,36 +124,36 @@ export default function ClientsPage() {
         status: payload.status,
       };
 
-      // ✅ PF
+      // ✅ PF - CAMPOS EM INGLÊS
       if (payload.type === "PF") {
         dto.name = payload.name;
         dto.cpf = payload.cpf;
       }
 
-      // ✅ PJ
+      // ✅ PJ - CAMPOS EM INGLÊS
       if (payload.type === "PJ") {
-        dto.razaoSocial = payload.name;
+        dto.companyName = payload.name; // ✅ CORRIGIDO: era razaoSocial
         dto.cnpj = payload.cnpj;
-        if (payload.stateRegistration) dto.inscricaoEstadual = payload.stateRegistration;
+        if (payload.stateRegistration) dto.stateRegistration = payload.stateRegistration; // ✅ CORRIGIDO: era inscricaoEstadual
       }
 
-      // ✅ Contato (apenas se tiver valor)
+      // ✅ Contato - INGLÊS (apenas se tiver valor)
       if (payload.cellphone) dto.cellphone = payload.cellphone;
       if (payload.email) dto.email = payload.email;
 
-      // ✅ CNH (apenas se tiver valor)
-      if (payload.licenseNumber) dto.cnhNumero = payload.licenseNumber;
-      if (payload.licenseCategory) dto.cnhCategoria = payload.licenseCategory;
-      if (payload.licenseExpiry) dto.cnhValidade = payload.licenseExpiry;
+      // ✅ CNH - CAMPOS EM INGLÊS (apenas se tiver valor)
+      if (payload.licenseNumber) dto.licenseNumber = payload.licenseNumber; // ✅ CORRIGIDO: era cnhNumero
+      if (payload.licenseCategory) dto.licenseCategory = payload.licenseCategory; // ✅ CORRIGIDO: era cnhCategoria
+      if (payload.licenseExpiry) dto.licenseExpiry = payload.licenseExpiry; // ✅ CORRIGIDO: era cnhValidade
 
-      // ✅ Endereço (apenas se tiver valor)
-      if (payload.zipCode) dto.cep = payload.zipCode;
-      if (payload.street) dto.logradouro = payload.street;
-      if (payload.number) dto.numero = payload.number;
-      if (payload.complement) dto.complemento = payload.complement;
-      if (payload.neighborhood) dto.bairro = payload.neighborhood;
-      if (payload.city) dto.cidade = payload.city;
-      if (payload.state) dto.estado = payload.state;
+      // ✅ Endereço - CAMPOS EM INGLÊS (apenas se tiver valor)
+      if (payload.zipCode) dto.zipCode = payload.zipCode; // ✅ CORRIGIDO: era cep
+      if (payload.street) dto.street = payload.street; // ✅ CORRIGIDO: era logradouro
+      if (payload.number) dto.number = payload.number; // ✅ CORRIGIDO: era numero
+      if (payload.complement) dto.complement = payload.complement; // ✅ CORRIGIDO: era complemento
+      if (payload.neighborhood) dto.neighborhood = payload.neighborhood; // ✅ CORRIGIDO: era bairro
+      if (payload.city) dto.city = payload.city; // ✅ CORRIGIDO: era cidade
+      if (payload.state) dto.state = payload.state; // ✅ CORRIGIDO: era estado
 
       console.log("📤 DTO enviado para API:", dto);
 
