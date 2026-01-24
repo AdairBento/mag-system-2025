@@ -110,9 +110,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     if (!isOpen) return;
 
     if (initialData) {
-      const cpf = initialData.cpf ?? "";
-      const cnpj = initialData.cnpj ?? "";
-
       setClientType(initialData.type ?? "PF");
       setForm({
         id: initialData.id ?? "",
@@ -120,12 +117,12 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
         email: initialData.email ?? "",
         telefone: initialData.cellphone ?? "",
 
-        cpf,
+        cpf: initialData.cpf ?? "",
         cnh: initialData.licenseNumber ?? "",
         cnhCategory: initialData.licenseCategory ?? "",
         cnhValidade: initialData.licenseExpiry ?? "",
 
-        cnpj,
+        cnpj: initialData.cnpj ?? "",
         ie: initialData.stateRegistration ?? "",
         responsibleName: initialData.responsibleName ?? "",
         responsiblePhone: initialData.responsiblePhone ?? "",
@@ -206,7 +203,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
     if (upper.includes("D")) return "D";
     if (upper.includes("E")) return "E";
 
-    return "AB";
+    return ""; // ✅ Retorna vazio ao invés de "AB"
   };
 
   const handleNameSearch = async (value: string) => {
@@ -274,9 +271,12 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
 
     if (clientType === "PF") {
       if (!form.cpf.replace(/\D/g, "")) return false;
-      if (!form.cnh.trim()) return false;
-      if (!form.cnhCategory.trim()) return false;
-      if (!form.cnhValidade) return false;
+      // ✅ CNH só é obrigatória se já foi preenchida ou está criando
+      const hasCnh = form.cnh.trim().length > 0;
+      if (hasCnh) {
+        if (!form.cnhCategory.trim()) return false;
+        if (!form.cnhValidade) return false;
+      }
       return true;
     }
 
@@ -319,10 +319,10 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
           ? {
               ...base,
               cpf: form.cpf.replace(/\D/g, "") || undefined,
-              // ✅ CNH EM INGLÊS
-              licenseNumber: form.cnh.trim(),
-              licenseCategory: form.cnhCategory,
-              licenseExpiry: form.cnhValidade,
+              // ✅ CNH EM INGLÊS - apenas se preenchido
+              licenseNumber: form.cnh.trim() || undefined,
+              licenseCategory: form.cnhCategory.trim() || undefined,
+              licenseExpiry: form.cnhValidade || undefined,
             }
           : {
               ...base,
@@ -330,7 +330,6 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
               stateRegistration: form.ie.trim() || undefined,
               responsibleName: form.responsibleName.trim(),
               responsiblePhone: form.responsiblePhone.replace(/\D/g, ""),
-              // ✅ PJ NÃO TEM CNH - removido!
             };
 
       await onSubmit(payload);
@@ -488,7 +487,7 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">CNH *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">CNH</label>
                   <input
                     type="text"
                     name="cnh"
@@ -497,10 +496,12 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
                     onChange={(e) => {
                       const value = e.target.value;
                       setField("cnh", value);
-                      const auto = autoDetectCnhCategory(value);
-                      setField("cnhCategory", auto);
+                      // ✅ Só detecta se tiver valor
+                      if (value.trim()) {
+                        const auto = autoDetectCnhCategory(value);
+                        if (auto) setField("cnhCategory", auto);
+                      }
                     }}
-                    required
                     placeholder="Número da CNH"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
@@ -508,14 +509,15 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Categoria CNH (auto) *
+                    Categoria CNH {form.cnh.trim() && "*"}
                   </label>
                   <select
                     name="cnhCategory"
                     value={form.cnhCategory}
                     onChange={onChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    required={form.cnh.trim().length > 0}
+                    disabled={!form.cnh.trim()}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
                     <option value="">Selecione...</option>
                     {CNH_CATEGORIES.map((cat) => (
@@ -528,15 +530,16 @@ export function ClientFormModal({ isOpen, title, initialData, onClose, onSubmit 
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Validade CNH *
+                    Validade CNH {form.cnh.trim() && "*"}
                   </label>
                   <input
                     type="date"
                     name="cnhValidade"
                     value={form.cnhValidade}
                     onChange={onChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    required={form.cnh.trim().length > 0}
+                    disabled={!form.cnh.trim()}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
               </>
