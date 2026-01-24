@@ -35,16 +35,11 @@ jobs:
 
       - name: Build shared packages
         run: |
-          pnpm --filter @mag/shared build
           pnpm --filter @mag/database build
+          pnpm --filter @mag/shared build
 
-      - name: Run typecheck
-        run: |
-          pnpm --filter @mag/api typecheck
-          pnpm --filter @mag/web typecheck
-
-      - name: Build API
+      - name: Build and typecheck API
         run: pnpm --filter @mag/api build
 
-      - name: Build Web
+      - name: Build and typecheck Web
         run: pnpm --filter @mag/web build
