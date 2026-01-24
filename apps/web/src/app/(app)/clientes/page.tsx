@@ -36,6 +36,10 @@ type ApiError = {
   message?: string;
   response?: {
     status?: number;
+    data?: {
+      message?: string;
+      error?: string;
+    };
   };
 };
 
@@ -113,6 +117,8 @@ export default function ClientsPage() {
   // mutations
   const saveClient = useMutation({
     mutationFn: async (payload: ClientUpsertPayload) => {
+      console.log("📦 Payload recebido na mutation:", payload);
+      
       const dto: Record<string, string | undefined> = {
         type: payload.type,
         status: payload.status,
@@ -149,9 +155,13 @@ export default function ClientsPage() {
       if (payload.city) dto.cidade = payload.city;
       if (payload.state) dto.estado = payload.state;
 
+      console.log("📤 DTO enviado para API:", dto);
+
       if (payload.id) {
+        console.log("✏️ Editando cliente ID:", payload.id);
         return apiClient.patch<Client>(`clients/${payload.id}`, dto);
       }
+      console.log("➕ Criando novo cliente");
       return apiClient.post<Client>("clients", dto);
     },
     onSuccess: () => {
@@ -161,10 +171,19 @@ export default function ClientsPage() {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
     onError: (error: unknown) => {
+      console.error("❌ Erro capturado na mutation:", error);
+      console.error("❌ Erro serializado:", JSON.stringify(error, null, 2));
+      
       const apiError = error as ApiError;
-      const message = apiError?.details?.message || apiError?.message || "Erro ao salvar cliente";
+      const message = 
+        apiError?.response?.data?.message ||
+        apiError?.response?.data?.error ||
+        apiError?.details?.message || 
+        apiError?.message || 
+        "Erro ao salvar cliente";
+      
+      console.error("💬 Mensagem extraída:", message);
       toast.error(message);
-      console.error("Erro ao salvar cliente:", error);
     },
   });
 
@@ -234,6 +253,7 @@ export default function ClientsPage() {
   };
 
   const openEditClient = (c: Client) => {
+    console.log("🔴 Abrindo edição de cliente:", c);
     setEditingClient(c);
     setIsClientModalOpen(true);
   };
