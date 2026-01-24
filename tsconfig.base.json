@@ -6,6 +6,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@mag/shared": ["packages/shared/src"],
+      "@mag/shared/*": ["packages/shared/src/*"]
+    }
   }
 }
