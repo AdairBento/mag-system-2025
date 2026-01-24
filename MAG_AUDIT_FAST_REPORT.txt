@@ -1,0 +1,29 @@
+🔥 MAG FAST AUDIT - C:\Users\adair\PycharmProject\MAG-system-webapp
+📝 Relatório: C:\Users\adair\PycharmProject\MAG-system-webapp\MAG_AUDIT_FAST_REPORT.txt
+📏 Limite: 2 MB por arquivo
+
+📦 Arquivos alvo: 151
+
+
+🧾 RESULTADOS (top 250 linhas)
+[CNH_AB_DEFAULT] .\apps\web\src\app\(app)\clientes\_components\client-form-modal.tsx:210  if (upper.includes("AB")) return "AB";
+[CNH_AB_DEFAULT] .\apps\web\src\app\(app)\clientes\_components\driver-form-modal.tsx:104  if (upper.includes("AB")) return "AB";
+[CNH_AB_DEFAULT] .\apps\web\src\app\(app)\clientes\_components\driver-form-modal.tsx:114  return "AB"; // default MAG (moto + carro)
+[FORM_RESET_EMPTY] .\apps\web\src\app\(app)\clientes\_components\client-form-modal.tsx:153  setForm(emptyForm);
+[FORM_RESET_EMPTY] .\apps\web\src\app\(app)\clientes\_components\driver-form-modal.tsx:94  setForm(emptyForm);
+[PHONE_FIELD] .\apps\api\src\modules\drivers\dto\create-driver.dto.ts:51  description: 'Cell phone number',
+[PHONE_FIELD] .\apps\api\src\modules\drivers\dto\create-driver.dto.ts:59  description: 'Landline phone number',
+[PHONE_FIELD] .\apps\api\src\modules\drivers\entities\driver.entity.ts:36  description: 'Cell phone number',
+[PHONE_FIELD] .\apps\api\src\modules\drivers\entities\driver.entity.ts:42  description: 'Landline phone number',
+[PHONE_FIELD] .\apps\web\src\app\(app)\clientes\_components\client-table.tsx:44  <td className="px-3 py-2">{c.cellphone ?? c.phone ?? "-"}</td>
+[PHONE_FIELD] .\apps\web\src\app\(app)\clientes\page.tsx:14  Phone as PhoneIcon,
+[PHONE_FIELD] .\apps\web\src\types\client.ts:33  phone?: string | null;
+[PHONE_FIELD] .\apps\web\src\types\client.ts:80  phone?: string | null;
+[PHONE_FIELD] .\apps\web\src\types\driver.ts:29  // mantemos também phone para padrão novo
+[PHONE_FIELD] .\apps\web\src\types\driver.ts:30  phone?: string | null;
+[PHONE_FIELD] .\apps\web\src\types\driver.ts:63  phone?: string | null;
+[SET_PF_FORCE] .\apps\web\src\app\(app)\clientes\_components\client-form-modal.tsx:154  setClientType("PF");
+[SET_PF_FORCE] .\apps\web\src\app\(app)\clientes\_components\client-form-modal.tsx:396  onChange={() => setClientType("PF")}
+
+📌 Total de ocorrências capturadas: 18
+✅ Concluído.
