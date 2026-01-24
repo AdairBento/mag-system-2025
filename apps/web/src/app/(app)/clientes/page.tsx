@@ -392,7 +392,7 @@ export default function ClientsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1 text-slate-600">
                           <PhoneIcon className="w-4 h-4 text-slate-400" />
-                          {maskPhone(c.phone || "") || "-"}
+                          {maskPhone(c.cellphone || "") || "-"}
                         </div>
                       </td>
                       <td className="px-4 py-3">
