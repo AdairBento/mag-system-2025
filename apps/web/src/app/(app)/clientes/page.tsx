@@ -364,7 +364,7 @@ export default function ClientsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1 text-slate-600">
                           <PhoneIcon className="w-4 h-4 text-slate-400" />
-                          {maskPhone(c.phone || "") || "-"}
+                          {maskPhone(c.cellphone || "") || "-"}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -492,7 +492,7 @@ export default function ClientsPage() {
                       <td className="px-4 py-3 text-slate-600">{maskCPF(d.cpf || "")}</td>
                       <td className="px-4 py-3 text-slate-600">{d.cnh || "—"}</td>
                       <td className="px-4 py-3 text-slate-600">
-                        {maskPhone(d.telefone || "") || "—"}
+                        {maskPhone(d.cellphone || "") || "—"}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="inline-flex gap-1">
