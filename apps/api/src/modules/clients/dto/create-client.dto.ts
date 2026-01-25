@@ -1,156 +1,135 @@
 import {
   IsString,
-  IsEnum,
-  IsOptional,
   IsEmail,
-  IsDateString,
+  IsOptional,
+  IsEnum,
   IsBoolean,
+  MaxLength,
+  MinLength,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
 import { ClientType, ClientStatus } from '@prisma/client';
+import { Transform } from 'class-transformer';
+import { IsCPF } from '../../../common/validators/cpf-cnpj.validator';
+import { IsCNPJ } from '../../../common/validators/cpf-cnpj.validator';
 
 export class CreateClientDto {
-  @ApiProperty({ enum: ClientType, description: 'Tipo de cliente' })
-  @IsEnum(ClientType)
-  type: ClientType;
+  @IsEnum(ClientType, { message: 'Tipo de cliente inválido' })
+  type!: ClientType;
 
-  @ApiPropertyOptional({ enum: ClientStatus, description: 'Status do cliente' })
-  @IsEnum(ClientStatus)
-  @IsOptional()
-  status?: ClientStatus;
+  @IsEnum(ClientStatus, { message: 'Status inválido' })
+  status!: ClientStatus;
 
-  // Individual Person (PF)
-  @ApiPropertyOptional({ description: 'Nome completo (PF)' })
-  @IsString()
+  // ========== PESSOA FÍSICA ==========
   @IsOptional()
+  @IsString({ message: 'Nome deve ser uma string' })
+  @MaxLength(200, { message: 'Nome muito longo (máx 200 caracteres)' })
+  @Transform(({ value, obj }) => value ?? obj.nome)
   name?: string;
 
-  @ApiPropertyOptional({ description: 'CPF (PF)' })
-  @IsString()
   @IsOptional()
+  @IsCPF({ message: 'CPF inválido' })
+  @Transform(({ value }) => value?.replace(/\D/g, ''))
   cpf?: string;
 
-  @ApiPropertyOptional({ description: 'RG (PF)' })
-  @IsString()
   @IsOptional()
+  @IsString({ message: 'RG deve ser uma string' })
+  @MaxLength(20, { message: 'RG muito longo' })
   rg?: string;
 
-  @ApiPropertyOptional({ description: 'Data de nascimento (PF)' })
-  @IsDateString()
+  // ========== PESSOA JURÍDICA ==========
   @IsOptional()
-  birthDate?: string;
-
-  // Company (PJ)
-  @ApiPropertyOptional({ description: 'Razão social (PJ)' })
-  @IsString()
-  @IsOptional()
+  @IsString({ message: 'Razão Social deve ser uma string' })
+  @MaxLength(200, { message: 'Razão Social muito longa' })
+  @Transform(({ value, obj }) => value ?? obj.razaoSocial)
   companyName?: string;
 
-  @ApiPropertyOptional({ description: 'CNPJ (PJ)' })
-  @IsString()
   @IsOptional()
+  @IsCNPJ({ message: 'CNPJ inválido' })
+  @Transform(({ value }) => value?.replace(/\D/g, ''))
   cnpj?: string;
 
-  @ApiPropertyOptional({ description: 'Nome fantasia (PJ)' })
-  @IsString()
   @IsOptional()
+  @IsString({ message: 'Nome Fantasia deve ser uma string' })
+  @MaxLength(200, { message: 'Nome Fantasia muito longo' })
+  @Transform(({ value, obj }) => value ?? obj.nomeFantasia)
   tradeName?: string;
 
-  @ApiPropertyOptional({ description: 'Inscrição estadual (PJ)' })
-  @IsString()
   @IsOptional()
+  @IsString({ message: 'Inscrição Estadual deve ser uma string' })
+  @MaxLength(30, { message: 'Inscrição Estadual muito longa' })
+  @Transform(({ value, obj }) => value ?? obj.inscricaoEstadual)
   stateRegistration?: string;
 
-  // Contact
-  @ApiPropertyOptional({ description: 'Celular' })
-  @IsString()
+  // ========== CONTATO ==========
   @IsOptional()
+  @IsString({ message: 'Celular deve ser uma string' })
+  @MinLength(10, { message: 'Celular inválido' })
+  @MaxLength(15, { message: 'Celular muito longo' })
+  @Transform(({ value }) => value?.replace(/\D/g, ''))
   cellphone?: string;
 
-  @ApiPropertyOptional({ description: 'Telefone' })
-  @IsString()
   @IsOptional()
+  @IsString({ message: 'Telefone deve ser uma string' })
+  @MaxLength(15, { message: 'Telefone muito longo' })
+  @Transform(({ value, obj }) => value ?? obj.telefone)
   telephone?: string;
 
-  @ApiPropertyOptional({ description: 'Email' })
-  @IsEmail()
   @IsOptional()
+  @IsEmail({}, { message: 'Email inválido' })
+  @MaxLength(100, { message: 'Email muito longo' })
   email?: string;
 
-  // Address - INGLÊS
-  @ApiPropertyOptional({ description: 'CEP' })
-  @IsString()
+  // ========== ENDEREÇO ==========
   @IsOptional()
-  @Transform(({ obj }) => obj.zipCode || obj.cep)
+  @IsString({ message: 'CEP deve ser uma string' })
+  @Transform(({ value, obj }) => {
+    const val = value ?? obj.cep;
+    return val?.replace(/\D/g, '');
+  })
   zipCode?: string;
 
-  @ApiPropertyOptional({ description: 'Rua/Avenida' })
-  @IsString()
   @IsOptional()
-  @Transform(({ obj }) => obj.street || obj.logradouro)
+  @IsString({ message: 'Logradouro deve ser uma string' })
+  @MaxLength(200, { message: 'Logradouro muito longo' })
+  @Transform(({ value, obj }) => value ?? obj.logradouro)
   street?: string;
 
-  @ApiPropertyOptional({ description: 'Número' })
-  @IsString()
   @IsOptional()
-  @Transform(({ obj }) => obj.number || obj.numero)
+  @IsString({ message: 'Número deve ser uma string' })
+  @MaxLength(20, { message: 'Número muito longo' })
+  @Transform(({ value, obj }) => value ?? obj.numero)
   number?: string;
 
-  @ApiPropertyOptional({ description: 'Complemento' })
-  @IsString()
   @IsOptional()
-  @Transform(({ obj }) => obj.complement || obj.complemento)
+  @IsString({ message: 'Complemento deve ser uma string' })
+  @MaxLength(100, { message: 'Complemento muito longo' })
   complement?: string;
 
-  @ApiPropertyOptional({ description: 'Bairro' })
-  @IsString()
   @IsOptional()
-  @Transform(({ obj }) => obj.neighborhood || obj.bairro)
+  @IsString({ message: 'Bairro deve ser uma string' })
+  @MaxLength(100, { message: 'Bairro muito longo' })
   neighborhood?: string;
 
-  @ApiPropertyOptional({ description: 'Cidade' })
-  @IsString()
   @IsOptional()
-  @Transform(({ obj }) => obj.city || obj.cidade)
+  @IsString({ message: 'Cidade deve ser uma string' })
+  @MaxLength(100, { message: 'Cidade muito longa' })
+  @Transform(({ value, obj }) => value ?? obj.cidade)
   city?: string;
 
-  @ApiPropertyOptional({ description: 'Estado (UF)' })
-  @IsString()
   @IsOptional()
-  @Transform(({ obj }) => obj.state || obj.estado)
+  @IsString({ message: 'Estado deve ser uma string' })
+  @MaxLength(2, { message: 'Estado inválido (use UF)' })
+  @Transform(({ value, obj }) => value ?? obj.estado)
   state?: string;
 
-  // Driver License - INGLÊS
-  @ApiPropertyOptional({ description: 'Número da CNH' })
-  @IsString()
+  // ========== OUTROS ==========
   @IsOptional()
-  @Transform(({ obj }) => obj.licenseNumber || obj.cnhNumero)
-  licenseNumber?: string;
-
-  @ApiPropertyOptional({ description: 'Categoria da CNH' })
-  @IsString()
-  @IsOptional()
-  @Transform(({ obj }) => obj.licenseCategory || obj.cnhCategoria)
-  licenseCategory?: string;
-
-  @ApiPropertyOptional({ description: 'Validade da CNH' })
-  @IsDateString()
-  @IsOptional()
-  @Transform(({ obj }) => obj.licenseExpiry || obj.cnhValidade)
-  licenseExpiry?: string;
-
-  // Additional Fields
-  @ApiPropertyOptional({ description: 'Observações gerais' })
-  @IsString()
-  @IsOptional()
+  @IsString({ message: 'Observações devem ser uma string' })
+  @MaxLength(1000, { message: 'Observações muito longas' })
+  @Transform(({ value, obj }) => value ?? obj.observacoes)
   observations?: string;
 
-  @ApiPropertyOptional({
-    description: 'Cliente ativo/inativo',
-    default: true,
-  })
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean({ message: 'isActive deve ser um booleano' })
   isActive?: boolean;
 }
