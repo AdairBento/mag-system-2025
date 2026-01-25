@@ -146,7 +146,16 @@ export default function ClientsPage() {
       setEditingClient(null);
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: () => toast.error("Erro ao salvar cliente"),
+    onError: (err: unknown) => {
+      // ✅ Tratar erro 409 (conflito de CPF/CNPJ/Email)
+      const error = err as { response?: { status?: number; data?: { message?: string } } };
+      if (error?.response?.status === 409) {
+        const message = error.response.data?.message || "CPF, CNPJ ou Email já cadastrado";
+        toast.error(message);
+        return;
+      }
+      toast.error("Erro ao salvar cliente");
+    },
   });
 
   const deleteClient = useMutation({
@@ -155,7 +164,11 @@ export default function ClientsPage() {
       toast.success("Cliente removido!");
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: () => toast.error("Erro ao remover cliente"),
+    onError: (err: unknown) => {
+      const error = err as { response?: { data?: { message?: string } } };
+      const message = error?.response?.data?.message || "Erro ao remover cliente";
+      toast.error(message);
+    },
   });
 
   const saveDriver = useMutation({
