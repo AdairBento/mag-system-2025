@@ -10,6 +10,11 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { CurrentUser, CurrentUserData } from '../../common/decorators/current-user.decorator';
 import {
   ApiTags,
   ApiOperation,
@@ -25,6 +30,7 @@ import { Client } from './entities/client.entity';
 
 @ApiTags('Clients')
 @Controller('clients')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
@@ -39,7 +45,7 @@ export class ClientsController {
   @ApiResponse({ status: 409, description: 'Client already exists' })
   create(@Body() createClientDto: CreateClientDto) {
     // TODO: Get userId from authentication context
-    const userId = undefined; // Replace with actual user ID from JWT/session
+    @CurrentUser() currentUser: CurrentUserData; // Replace with actual user ID from JWT/session
     return this.clientsService.create(createClientDto, userId);
   }
 
@@ -107,7 +113,7 @@ export class ClientsController {
   @ApiResponse({ status: 409, description: 'Conflict with existing data' })
   update(@Param('id') id: string, @Body() updateClientDto: UpdateClientDto) {
     // TODO: Get userId from authentication context
-    const userId = undefined; // Replace with actual user ID from JWT/session
+    @CurrentUser() currentUser: CurrentUserData; // Replace with actual user ID from JWT/session
     return this.clientsService.update(id, updateClientDto, userId);
   }
 
@@ -126,7 +132,7 @@ export class ClientsController {
   })
   remove(@Param('id') id: string) {
     // TODO: Get userId from authentication context
-    const userId = undefined; // Replace with actual user ID from JWT/session
+    @CurrentUser() currentUser: CurrentUserData; // Replace with actual user ID from JWT/session
     return this.clientsService.remove(id, userId);
   }
 
@@ -147,7 +153,7 @@ export class ClientsController {
   })
   restore(@Param('id') id: string) {
     // TODO: Get userId from authentication context
-    const userId = undefined; // Replace with actual user ID from JWT/session
+    @CurrentUser() currentUser: CurrentUserData; // Replace with actual user ID from JWT/session
     return this.clientsService.restore(id, userId);
   }
 
@@ -167,7 +173,8 @@ export class ClientsController {
     status: 409,
     description: 'Cannot delete due to foreign key constraints',
   })
-  forceDelete(@Param('id') id: string) {
+@Roles('ADMIN')
+    forceDelete(@Param('id') id: string) {
     // TODO: Add admin role check
     return this.clientsService.forceDelete(id);
   }
